@@ -15,6 +15,8 @@ import { ConfigValidationService } from './core/config/config-validation.service
 import { JwtTokenService } from './modules/auth/infrastructure/jwt/jwt.service';
 import envConfig from './core/config/env.config';
 import { AppResolver } from './app.resolver';
+import { WinstonModule } from 'nest-winston';
+import { winstonConfig } from './core/config/logger.config';
 
 @Module({
   imports: [
@@ -24,24 +26,19 @@ import { AppResolver } from './app.resolver';
     //   envFilePath: '.env',
     // }),
 
-    //configuration
-    // ConfigModule.forRoot({
-    //   isGlobal: true,
-    //   load: [databaseConfig],
-    // }),
+    // logger setup
+    WinstonModule.forRootAsync({
+      useFactory: () => winstonConfig,
+    }),
 
+    //configuration
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
-      load: [databaseConfig, graphqlConfig, envConfig], // you can load multiple configs
+      load: [databaseConfig, graphqlConfig, envConfig],
     }),
 
     // Graphql setup
-    // GraphQLModule.forRootAsync<ApolloDriverConfig>({
-    //   driver: ApolloDriver,
-    //   autoSchemaFile: true,
-    //   useFactory: graphqlConfig,
-    // }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       ...graphqlConfig(),
