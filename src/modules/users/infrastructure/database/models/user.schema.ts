@@ -1,12 +1,12 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose from 'mongoose';
-
 import { UserRole } from 'src/modules/users/domain/entities/users.entity';
 
-export type UserDocument = UserPersistence & Document;
+export type UserDocument = UserPersistence &
+  Document & { createdAt: Date; updatedAt: Date };
 
 @Schema({
-  timestamps: { createdAt: 'createdAt', updatedAt: 'UpdatedAt' },
+  timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' },
   collection: 'users',
 })
 export class UserPersistence {
@@ -49,14 +49,14 @@ export class UserPersistence {
   @Prop({ default: false })
   isEmailVerified: boolean;
 
-  @Prop({ type: Date })
+  @Prop({ type: Date, default: null })
   lastLogin: Date;
 
-  @Prop({ type: Date })
-  createdAt: Date;
+  // @Prop({ type: Date })
+  // createdAt: Date;
 
-  @Prop({ type: Date })
-  updatedAt: Date;
+  // @Prop({ type: Date })
+  // updatedAt: Date;
 }
 
 export const UserSchema = SchemaFactory.createForClass(UserPersistence);
