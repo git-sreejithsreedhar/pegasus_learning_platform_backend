@@ -4,14 +4,19 @@ import { ConfigService } from '@nestjs/config';
 import helmet from 'helmet';
 import compression from 'compression';
 import { ValidationPipe } from '@nestjs/common';
-import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
+import { WINSTON_MODULE_PROVIDER, WinstonModule } from 'nest-winston';
 import { Logger as WinstonLogger } from 'winston';
 import { HttpExceptionFilter } from './core/common/filters/http-exception.fillters';
-import { GqlAllExceptionFilter } from './core/common/filters/gql-exception.filters';
+import { GqlHttpExceptionFilter } from './core/common/filters/gql-exception.filters';
 import { GlobalLoggingInterceptor } from './core/common/intercetors/global-logging.interceptor';
+import { winstonConfig } from './core/config/logger.config';
+import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  // const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  const app = await NestFactory.create(AppModule, {
+    logger: WinstonModule.createLogger(winstonConfig),
+  });
   const configService = app.get(ConfigService);
 
   app.enableCors({
@@ -20,7 +25,14 @@ async function bootstrap() {
   });
 
   app.setGlobalPrefix('api/v1');
-  app.use(helmet());
+
+  if (configService.get<string>('nodeEnv') === 'production') {
+    app.use(helmet());
+    // app.enableCors({ origin: 'https://yourdomain.com' });
+  } else {
+    app.use(helmet({ contentSecurityPolicy: false }));
+    app.enableCors({ origin: '*' });
+  }
   app.use(compression());
 
   app.useGlobalPipes(
@@ -30,10 +42,11 @@ async function bootstrap() {
       transform: true,
     }),
   );
+  // parsing cookies
+  app.use(cookieParser());
 
   // Get actual Winston instance
   const logger = app.get<WinstonLogger>(WINSTON_MODULE_PROVIDER);
-  app.useLogger(logger);
 
   // instance for the interceptor
   app.useGlobalInterceptors(new GlobalLoggingInterceptor(logger));
@@ -41,13 +54,13 @@ async function bootstrap() {
   // instance for filters
   app.useGlobalFilters(
     new HttpExceptionFilter(logger),
-    new GqlAllExceptionFilter(logger),
+    new GqlHttpExceptionFilter(logger),
   );
 
   const port = configService.get<number>('PORT') || 3000;
   await app.listen(port);
 
-  logger.info(`🚀 Server running on port ${port}`);
+  logger.info(`Server running on port ${port}`);
 }
 
 void bootstrap();

@@ -2,9 +2,9 @@ import { Injectable } from '@nestjs/common';
 import {
   GeneratedTokens,
   TokenPayload,
-  TokenService,
+  ITokenService,
   TokenVerificationResult,
-} from '../../application/token-service.interface';
+} from '../../application/interfaces/token-service.interface';
 import { JwtService, JwtSignOptions, JwtVerifyOptions } from '@nestjs/jwt';
 import { ConfigValidationService } from 'src/core/config/config-validation.service';
 
@@ -17,7 +17,7 @@ export interface JWTConfifg {
 }
 
 @Injectable()
-export class JwtTokenService implements TokenService {
+export class JwtTokenService implements ITokenService {
   private readonly tokenConfig: JWTConfifg;
 
   constructor(
@@ -105,7 +105,7 @@ export class JwtTokenService implements TokenService {
   }
 
   async verifyRefreshToken(token: string): Promise<TokenVerificationResult> {
-    return this.verifyToken(token, this.getRefreshTokenOptions());
+    return this.verifyToken(token, this.getRefreshTokenVerifyOptions());
   }
 
   private async verifyToken(
