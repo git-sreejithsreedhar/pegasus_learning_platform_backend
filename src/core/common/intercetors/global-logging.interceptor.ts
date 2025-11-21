@@ -80,54 +80,58 @@ export class GlobalLoggingInterceptor implements NestInterceptor {
 //   CallHandler,
 //   Inject,
 // } from '@nestjs/common';
-// import { Observable, tap } from 'rxjs';
+// import { Observable, tap, catchError, throwError } from 'rxjs';
 // import { GqlExecutionContext } from '@nestjs/graphql';
 // import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
-// import { Logger as WinstonLogger } from 'winston';
-// import { GraphQLResolveInfo } from 'graphql';
+// import { Logger } from 'winston';
+// import { v4 as uuid } from 'uuid';
 
 // @Injectable()
 // export class GlobalLoggingInterceptor implements NestInterceptor {
 //   constructor(
 //     @Inject(WINSTON_MODULE_PROVIDER)
-//     private readonly logger: WinstonLogger,
+//     private readonly logger: Logger,
 //   ) {}
 
-//   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
-//     let actionName = '';
-//     let details = '';
-
-//     // Handle REST API context
-//     if (context.getType() === 'http') {
-//       const req = context
-//         .switchToHttp()
-//         .getRequest<Request & { body?: unknown }>();
-//       const { method, url, body } = req;
-//       actionName = `[REST] ${method} ${url}`;
-//       details = JSON.stringify(body ?? {});
-//     }
-
-//     // Handle GraphQL context
-//     else if ((context.getType() as unknown) === 'graphql') {
-//       const gqlCtx = GqlExecutionContext.create(context);
-//       const info = gqlCtx.getInfo<GraphQLResolveInfo>();
-//       const args = gqlCtx.getArgs<Record<string, unknown>>();
-//       const resolverName = info?.parentType?.name ?? 'UnknownResolver';
-//       const fieldName = info?.fieldName ?? 'UnknownField';
-//       actionName = `[GraphQL] ${resolverName}.${fieldName}`;
-//       details = JSON.stringify(args);
-//     }
-
+//   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+//     const requestId = uuid();
 //     const start = Date.now();
-//     this.logger.info(`${actionName} called`);
-//     this.logger.debug(`Args: ${details}`);
+
+//     let target = '';
+//     let args: unknown;
+
+//     // REST
+//     if (context.getType() === 'http') {
+//       const req = context.switchToHttp().getRequest();
+//       target = `[REST] ${req.method} ${req.url}`;
+//       args = req.body;
+//     }
+
+//     // GraphQL
+//     if ((context.getType() as any) === 'graphql') {
+//       const gqlCtx = GqlExecutionContext.create(context);
+//       const info = gqlCtx.getInfo();
+//       args = gqlCtx.getArgs();
+//       target = `[GraphQL] ${info.parentType.name}.${info.fieldName}`;
+//     }
+
+//     this.logger.info(`${target} - START`, { requestId, args });
 
 //     return next.handle().pipe(
-//       tap((result) => {
-//         const duration = Date.now() - start;
-//         this.logger.info(
-//           `${actionName} completed in ${duration}ms | Result: ${JSON.stringify(result)}`,
-//         );
+//       tap(() => {
+//         const took = Date.now() - start;
+//         this.logger.info(`${target} - SUCCESS (${took}ms)`, { requestId });
+//       }),
+//       catchError((error) => {
+//         const took = Date.now() - start;
+
+//         this.logger.error(`${target} - FAILED (${took}ms)`, {
+//           requestId,
+//           error: error instanceof Error ? error.message : error,
+//           stack: error instanceof Error ? error.stack : undefined,
+//         });
+
+//         return throwError(() => error);
 //       }),
 //     );
 //   }

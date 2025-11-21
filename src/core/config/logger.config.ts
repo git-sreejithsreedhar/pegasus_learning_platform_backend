@@ -1,27 +1,26 @@
 import * as winston from 'winston';
+import { utilities as nestWinstonModuleUtilities } from 'nest-winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
 
-export const winstonConfig: winston.LoggerOptions = {
+export const winstonConfig = {
   transports: [
     new winston.transports.Console({
       format: winston.format.combine(
         winston.format.timestamp(),
-        winston.format.colorize(),
-        winston.format.printf(
-          ({
-            level,
-            message,
-            timestamp,
-          }: {
-            level: string;
-            message: string;
-            timestamp?: string;
-          }) => {
-            return `[${timestamp ?? 'N/A'}] ${level}: ${message}`;
-          },
-        ),
+        winston.format.ms(),
+        nestWinstonModuleUtilities.format.nestLike('MyApp', {
+          colors: true,
+          prettyPrint: true,
+        }),
       ),
     }),
+    // new winston.transports.File({
+    //   filename: 'logs/error.log',
+    //   level: 'error',
+    // }),
+    // new winston.transports.File({
+    //   filename: 'logs/combined.log',
+    // }),
 
     new winston.transports.File({
       filename: 'logs/app.log',
