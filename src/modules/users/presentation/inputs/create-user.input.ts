@@ -1,4 +1,4 @@
-// This is the clean structure used by the Application/Domain layer
+import { InputType, Field } from '@nestjs/graphql';
 import {
   IsEmail,
   IsNotEmpty,
@@ -9,27 +9,37 @@ import {
   ValidateNested,
   IsArray,
 } from 'class-validator';
-import { CreateProfileDto } from './create-profile.dto';
 import { Type } from 'class-transformer';
+import { CreateProfileInput } from './create-profile.input';
 import { UserRole } from '../../domain/entities/users.entity';
 
-export class CreateUserDto {
+@InputType()
+export class CreateUserInput {
+  @Field()
+  @IsString()
+  name: string;
+
+  @Field()
   @IsEmail()
   @IsNotEmpty()
   email: string;
 
+  @Field()
   @IsString()
   @MinLength(6)
   password: string;
 
+  @Field(() => UserRole, { nullable: true })
   @IsEnum(UserRole)
   @IsOptional()
   role?: UserRole;
 
+  @Field(() => CreateProfileInput)
   @ValidateNested()
-  @Type(() => CreateProfileDto)
-  profile: CreateProfileDto;
+  @Type(() => CreateProfileInput)
+  profile: CreateProfileInput;
 
+  @Field(() => [String], { nullable: true })
   @IsArray()
   @IsOptional()
   preferences?: string[];

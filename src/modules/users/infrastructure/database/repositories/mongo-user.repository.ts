@@ -18,7 +18,7 @@ export class MongoUserRepository implements IUserRepository {
   }
 
   async findById(id: string): Promise<User | null> {
-    const userDoc = await this.userModel.findById({ id }).exec();
+    const userDoc = await this.userModel.findById(id).exec();
     return userDoc ? this.toDomain(userDoc) : null;
   }
 
@@ -32,8 +32,6 @@ export class MongoUserRepository implements IUserRepository {
     const updatedDoc = await this.userModel
       .findByIdAndUpdate(user._id, this.toPersistence(user), { new: true })
       .exec();
-
-    // return this.toDomain(updatedDoc);
     return updatedDoc ? this.toDomain(updatedDoc) : null;
   }
 
@@ -73,8 +71,8 @@ export class MongoUserRepository implements IUserRepository {
       preferences: user.preferences,
       isEmailVerified: user.isEmailVerified,
       lastLogin: user.lastLogin,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
+      // createdAt: user.createdAt,
+      // updatedAt: user.updatedAt,
     };
   }
 }

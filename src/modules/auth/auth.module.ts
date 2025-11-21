@@ -13,8 +13,7 @@ import { JwtTokenService } from './infrastructure/jwt/jwt.service';
 import { ConfigValidationService } from 'src/core/config/config-validation.service';
 import { UsersModule } from '../users/users.module';
 import { AuthSetup } from './auth.setup';
-import { BcryptPasswordHasher } from 'src/core/common/security/bcrypt-password-hasher.service';
-import { USER_REPOSITORY } from '../users/domain/tokens/tokens';
+import { BcryptPasswordHasher } from 'src/core/common/security/bcrypt-password-hasher.service'; 
 import { IUserRepository } from '../users/domain/repositories/users-repository.interface';
 import { IPasswordService } from 'src/core/common/security/password-hasher.interface';
 import { ITokenService } from './application/interfaces/token-service.interface';
@@ -29,6 +28,7 @@ import appConfig from 'src/core/config/env.config';
 import { ConfigModule } from '@nestjs/config';
 import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './infrastructure/jwt/jwt.strategy';
+import { USER_REPOSITORY } from '../users/domain/tokens/tokens';
 @Module({
   imports: [
     WinstonModule.forRoot(winstonConfig),

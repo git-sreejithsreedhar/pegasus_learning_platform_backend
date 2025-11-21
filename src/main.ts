@@ -1,15 +1,9 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ConfigService } from '@nestjs/config/dist/config.service';
+import { ConfigService } from '@nestjs/config';
 import helmet from 'helmet';
 import compression from 'compression';
 import { ValidationPipe } from '@nestjs/common';
-<<<<<<< Updated upstream
-
-async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-
-=======
 import { WINSTON_MODULE_PROVIDER, WinstonModule } from 'nest-winston';
 import { Logger as WinstonLogger } from 'winston';
 import { HttpExceptionFilter } from './core/common/filters/http-exception.fillters';
@@ -23,7 +17,6 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     logger: WinstonModule.createLogger(winstonConfig),
   });
->>>>>>> Stashed changes
   const configService = app.get(ConfigService);
 
   app.enableCors({
@@ -33,10 +26,6 @@ async function bootstrap() {
 
   app.setGlobalPrefix('api/v1');
 
-<<<<<<< Updated upstream
-  app.use(helmet());
-
-=======
   if (configService.get<string>('nodeEnv') === 'production') {
     app.use(helmet());
     // app.enableCors({ origin: 'https://yourdomain.com' });
@@ -44,7 +33,6 @@ async function bootstrap() {
     app.use(helmet({ contentSecurityPolicy: false }));
     app.enableCors({ origin: '*' });
   }
->>>>>>> Stashed changes
   app.use(compression());
 
   app.useGlobalPipes(
@@ -57,8 +45,6 @@ async function bootstrap() {
   // parsing cookies
   app.use(cookieParser());
 
-<<<<<<< Updated upstream
-=======
   // Get actual Winston instance
   const logger = app.get<WinstonLogger>(WINSTON_MODULE_PROVIDER);
 
@@ -71,14 +57,10 @@ async function bootstrap() {
     new GqlHttpExceptionFilter(logger),
   );
 
->>>>>>> Stashed changes
   const port = configService.get<number>('PORT') || 3000;
-
   await app.listen(port);
-<<<<<<< Updated upstream
-=======
 
   logger.info(`Server running on port ${port}`);
->>>>>>> Stashed changes
 }
+
 void bootstrap();

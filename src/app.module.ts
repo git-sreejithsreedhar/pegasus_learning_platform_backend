@@ -12,6 +12,8 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigValidationService } from './core/config/config-validation.service';
 import { JwtTokenService } from './modules/auth/infrastructure/jwt/jwt.service';
 import { AppResolver } from './app.resolver';
+import { WinstonModule } from 'nest-winston';
+import { winstonConfig } from './core/config/logger.config';
 
 import databaseConfig from './core/database/database.config';
 import envConfig from './core/config/env.config';
@@ -19,42 +21,18 @@ import graphqlConfig from './core/config/graphql.config';
 
 @Module({
   imports: [
-<<<<<<< Updated upstream
-    // environment Module
-    // ConfigModule.forRoot({
-    //   isGlobal: true,
-    //   envFilePath: '.env',
-    // }),
-
-    //configuration
-    // ConfigModule.forRoot({
-    //   isGlobal: true,
-    //   load: [databaseConfig],
-    // }),
-
-=======
     // logger setup
     WinstonModule.forRoot(winstonConfig),
 
     //ENV configuration
->>>>>>> Stashed changes
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
-      load: [databaseConfig, graphqlConfig, envConfig], // you can load multiple configs
+      load: [databaseConfig, graphqlConfig, envConfig],
     }),
 
     // Graphql setup
-<<<<<<< Updated upstream
-    // GraphQLModule.forRootAsync<ApolloDriverConfig>({
-    //   driver: ApolloDriver,
-    //   autoSchemaFile: true,
-    //   useFactory: graphqlConfig,
-    // }),
-    GraphQLModule.forRoot<ApolloDriverConfig>({
-=======
     GraphQLModule.forRootAsync<ApolloDriverConfig>({
->>>>>>> Stashed changes
       driver: ApolloDriver,
       useFactory: graphqlConfig,
     }),
