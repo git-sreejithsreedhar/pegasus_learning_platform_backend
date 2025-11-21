@@ -9,7 +9,7 @@ export class Password {
 
   private validate(password: string): void {
     if (password.length < 6) {
-      throw new Error('Password length must be 8 characters');
+      throw new Error('Password length must be 6 characters');
     }
 
     const hasUppercase = /[A-Z]/.test(password);

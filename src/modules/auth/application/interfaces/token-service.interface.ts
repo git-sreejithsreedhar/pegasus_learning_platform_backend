@@ -4,10 +4,12 @@ export interface GeneratedTokens {
 }
 
 export interface TokenPayload {
-  userid: string;
-  email: string;
-  role: string;
+  userId: string;
+  email?: string;
+  role?: string;
   key?: unknown;
+  iat?: number;
+  exp?: number;
 }
 
 export interface TokenVerificationResult {
@@ -16,7 +18,7 @@ export interface TokenVerificationResult {
   error?: string;
 }
 
-export interface TokenService {
+export interface ITokenService {
   // Token generation
   generateAccessToken(payload: object): Promise<string>;
   generateRefreshToken(payload: object): Promise<string>;

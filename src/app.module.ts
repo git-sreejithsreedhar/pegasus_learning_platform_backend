@@ -2,10 +2,8 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import databaseConfig from './core/database/database.config';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriverConfig, ApolloDriver } from '@nestjs/apollo';
-import graphqlConfig from './core/config/graphql.config';
 import { MongoProvider } from './core/database/mongo.provider';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
@@ -13,25 +11,20 @@ import { TutorsModule } from './modules/tutors/tutors.module';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigValidationService } from './core/config/config-validation.service';
 import { JwtTokenService } from './modules/auth/infrastructure/jwt/jwt.service';
-import envConfig from './core/config/env.config';
 import { AppResolver } from './app.resolver';
 import { WinstonModule } from 'nest-winston';
 import { winstonConfig } from './core/config/logger.config';
 
+import databaseConfig from './core/database/database.config';
+import envConfig from './core/config/env.config';
+import graphqlConfig from './core/config/graphql.config';
+
 @Module({
   imports: [
-    // environment Module
-    // ConfigModule.forRoot({
-    //   isGlobal: true,
-    //   envFilePath: '.env',
-    // }),
-
     // logger setup
-    WinstonModule.forRootAsync({
-      useFactory: () => winstonConfig,
-    }),
+    WinstonModule.forRoot(winstonConfig),
 
-    //configuration
+    //ENV configuration
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
@@ -39,9 +32,9 @@ import { winstonConfig } from './core/config/logger.config';
     }),
 
     // Graphql setup
-    GraphQLModule.forRoot<ApolloDriverConfig>({
+    GraphQLModule.forRootAsync<ApolloDriverConfig>({
       driver: ApolloDriver,
-      ...graphqlConfig(),
+      useFactory: graphqlConfig,
     }),
 
     // JWT module
