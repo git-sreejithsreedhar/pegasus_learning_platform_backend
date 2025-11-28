@@ -30,8 +30,8 @@ async function bootstrap() {
     app.use(helmet());
     // app.enableCors({ origin: 'https://yourdomain.com' });
   } else {
-    app.use(helmet({ contentSecurityPolicy: false }));
-    app.enableCors({ origin: '*' });
+    // app.use(helmet({ contentSecurityPolicy: false }));
+    // app.enableCors({ origin: '*' });
   }
   app.use(compression());
 
