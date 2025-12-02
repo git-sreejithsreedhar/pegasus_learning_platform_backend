@@ -51,12 +51,6 @@ export class UserPersistence {
 
   @Prop({ type: Date, default: null })
   lastLogin: Date;
-
-  // @Prop({ type: Date })
-  // createdAt: Date;
-
-  // @Prop({ type: Date })
-  // updatedAt: Date;
 }
 
 export const UserSchema = SchemaFactory.createForClass(UserPersistence);

@@ -5,10 +5,15 @@ import { MongoUserRepository } from './infrastructure/database/repositories/mong
 import { PASSWORD_SERVICE, USER_REPOSITORY } from './domain/tokens/tokens';
 import { User } from './domain/entities/users.entity';
 import { UserSchema } from './infrastructure/database/models/user.schema';
-import { MongooseModule } from '@nestjs/mongoose';
 import { BcryptPasswordHasher } from 'src/core/common/security/bcrypt-password-hasher.service';
 import { UserController } from './presentation/controller/user.controller';
 import { AuthModule } from '../auth/auth.module';
+import { MongooseModule } from '@nestjs/mongoose';
+
+// Define the Mongoose feature setup as a constant
+// const UserMongooseFeature = MongooseModule.forFeature([
+//   { name: User.name, schema: UserSchema },
+// ]);
 
 @Module({
   controllers: [UserController],
@@ -16,6 +21,7 @@ import { AuthModule } from '../auth/auth.module';
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
     forwardRef(() => AuthModule),
   ],
+
   providers: [
     // UsersResolver,
     CreateUserUseCase,
