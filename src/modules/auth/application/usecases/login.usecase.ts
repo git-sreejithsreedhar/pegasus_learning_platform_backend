@@ -10,6 +10,8 @@ import { ITokenService } from '../interfaces/token-service.interface';
 import { Logger } from 'winston';
 import { HttpException } from '@nestjs/common';
 import { ResponseConstants } from 'src/core/common/constants/response.constants';
+// import { EmailNotVerifiedError } from '../../domain/errors/email-notverified.error';
+import { ErrorMapper } from '../error.mapper';
 
 export class LoginUseCase implements ILoginUsecase {
   constructor(
@@ -49,6 +51,15 @@ export class LoginUseCase implements ILoginUsecase {
         );
       }
 
+      // if (!user.isEmailVerified) {
+      //   this.logger.warn(`Login failed - email not verified: ${email}`);
+      //   throw new EmailNotVerifiedError();
+      // throw new HttpException(
+      //   ResponseConstants.MAIL_NOT_VERIFIED.message,
+      //   ResponseConstants.MAIL_NOT_VERIFIED.statusCode,
+      // );
+      // }
+
       const isValid = await this.passwordService.compare(
         passwordVO.stringValue,
         user.password,
@@ -73,7 +84,7 @@ export class LoginUseCase implements ILoginUsecase {
       });
 
       // Hash Refresh Token
-      const hashedRefreshToken = await this.passwordService.hash(
+      const hashedRefreshToken = await this.passwordService.hash( 
         tokens.refreshToken,
       );
 
@@ -87,22 +98,26 @@ export class LoginUseCase implements ILoginUsecase {
       await this.refreshTokenRepo.saveRefreshToken(refreshTokenEntity);
 
       this.logger.info(`Login success for ${email}`);
+      // console.log({ user, ...tokens });
 
       return { user, ...tokens };
     } catch (err) {
-      if (err instanceof HttpException) {
-        this.logger.error(`Login HttpException for ${email}: ${err.message}`);
-        throw err;
-      }
+      this.logger.error(`Unexpected login error for ${email}: ${err.message}`);
 
-      this.logger.error(
-        `Unexpected login error for ${email}: ${(err as Error).message}`,
-      );
+      throw ErrorMapper.toHttp(err);
+      // if (err instanceof HttpException) {
+      //   this.logger.error(`Login HttpException for ${email}: ${err.message}`);
+      //   throw err;
+      // }
 
-      throw new HttpException(
-        ResponseConstants.SERVER_ERROR.message,
-        ResponseConstants.SERVER_ERROR.statusCode,
-      );
+      // this.logger.error(
+      //   `Unexpected login error for ${email}: ${(err as Error).message}`,
+      // );
+
+      // throw new HttpException(
+      //   ResponseConstants.SERVER_ERROR.message,
+      //   ResponseConstants.SERVER_ERROR.statusCode,
+      // );
     }
   }
 }

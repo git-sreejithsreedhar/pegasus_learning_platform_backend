@@ -7,7 +7,6 @@ import { ApolloDriverConfig, ApolloDriver } from '@nestjs/apollo';
 import { MongoProvider } from './core/database/mongo.provider';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
-import { TutorsModule } from './modules/tutors/tutors.module';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigValidationService } from './core/config/config-validation.service';
 import { JwtTokenService } from './modules/auth/infrastructure/jwt/jwt.service';
@@ -53,7 +52,6 @@ import graphqlConfig from './core/config/graphql.config';
     // Feature Modules
     AuthModule,
     UsersModule,
-    TutorsModule,
   ],
   controllers: [AppController],
   providers: [
