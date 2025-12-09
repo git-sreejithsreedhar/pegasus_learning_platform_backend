@@ -31,11 +31,15 @@ export class MailService implements IMailService {
         html: `
             <h1>Hello ${name},</h1>
             <p>Thank you for signing up!</p>
-            <p>Click <a href="${link}">here</a> to verify your email.</p>
+            
+             <p>${link}</p>
             `,
       });
     } catch (error) {
-      this.logger.error('Failed to send verification mail', error);
+      this.logger.error('Failed to send verification mail', {
+        error: error instanceof Error ? error.message : error,
+      });
+
       throw new HttpException(
         ResponseConstants.MAIL_SEND_FAILED.message,
         ResponseConstants.MAIL_SEND_FAILED.statusCode,
@@ -57,7 +61,10 @@ export class MailService implements IMailService {
             `,
       });
     } catch (error) {
-      this.logger.error('Failed to send reset password mail', error);
+      this.logger.error('Failed to send verification mail', {
+        error: error instanceof Error ? error.message : error,
+      });
+
       throw new HttpException(
         ResponseConstants.MAIL_SEND_FAILED.message,
         ResponseConstants.MAIL_SEND_FAILED.statusCode,

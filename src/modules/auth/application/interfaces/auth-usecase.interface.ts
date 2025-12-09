@@ -12,3 +12,18 @@ export interface ILoginUsecase {
 export interface ILogOut {
   execute(refreshToken: string): Promise<void>;
 }
+
+// send Email usecase interface
+export interface ISendVerificationMailUsecase {
+  execute(data: { _id: string; email: string; name?: string }): Promise<void>;
+}
+
+// Verify Email usecase interface
+export interface IVerifyMailUsecase {
+  execute(token: string): Promise<void>;
+}
+
+// Forgot password usecase interface
+export interface IForgotPasswordUsecase {
+  execute(email: string): Promise<{ message: string }>;
+}

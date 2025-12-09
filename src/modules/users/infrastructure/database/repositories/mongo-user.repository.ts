@@ -35,6 +35,10 @@ export class MongoUserRepository implements IUserRepository {
     return updatedDoc ? this.toDomain(updatedDoc) : null;
   }
 
+  async updateEmailVerified(id: string): Promise<void> {
+    await this.userModel.updateOne({ _id: id }, { isEmailVerified: true });
+  }
+
   private toDomain(userDoc: UserDocument): User {
     return User.reconstitute({
       _id: userDoc._id.toString(),
