@@ -50,7 +50,9 @@ type UserProfileModel {
   name: String!
 }
 
-"""Roles available for users"""
+"""
+Roles available for users
+"""
 enum UserRole {
   ADMIN
   INSTRUCTOR
