@@ -27,3 +27,13 @@ export interface IVerifyMailUsecase {
 export interface IForgotPasswordUsecase {
   execute(email: string): Promise<{ message: string }>;
 }
+
+// Resend verification link usecase interface
+export interface IResendEmailUsecase {
+  execute(email: string): Promise<void>;
+}
+
+// Update password usecase interface
+export interface IUpdatePasswordUsecase {
+  execute(newPassword: string, token: string);
+}

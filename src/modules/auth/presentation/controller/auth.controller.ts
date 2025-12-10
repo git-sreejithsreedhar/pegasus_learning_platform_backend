@@ -1,8 +1,11 @@
 import { Body, Controller, HttpException, Inject, Post } from '@nestjs/common';
 import { sendMailDto } from '../inputs/send-mail.dto';
 import {
+  IForgotPasswordUsecaseToken,
   ILoginUsecaseToken,
+  IResendEmailUsecaseToken,
   ISendVerificationMailUsecaseToken,
+  IUpdatePasswordUsecaseToken,
   IVerifyMailUsecaseToken,
 } from '../../application/tokens';
 import * as authUsecaseInterface from '../../application/interfaces/auth-usecase.interface';
@@ -19,6 +22,12 @@ export class AuthController {
     private readonly mailVerificationUsecase: authUsecaseInterface.IVerifyMailUsecase,
     @Inject(ILoginUsecaseToken)
     private readonly loginUsecase: authUsecaseInterface.ILoginUsecase,
+    @Inject(IResendEmailUsecaseToken)
+    private readonly resendEmailUsecase: authUsecaseInterface.IResendEmailUsecase,
+    @Inject(IForgotPasswordUsecaseToken)
+    private readonly forgotPasswordUsecase: authUsecaseInterface.IForgotPasswordUsecase,
+    @Inject(IUpdatePasswordUsecaseToken)
+    private readonly updatePasswordUsecase: authUsecaseInterface.IUpdatePasswordUsecase,
   ) {}
 
   // user login
@@ -65,21 +74,38 @@ export class AuthController {
         message: 'Email verified successfully',
       };
     } catch (error) {
-      throw new HttpException(
-        error?.message || 'Email verification failed',
-        error?.status || 400,
-      );
+      console.error(error);
     }
   }
 
-  //   forgot password
-  // async forgotPassword(
-  //   @Body('email') email: string,
-  // ): Promise<{ message: string }> {
-  //   try {
-  //     await this.forgotPasswordUsecase.execute(email);
-  //   } catch (err) {
-  //     console.error(err);
-  //   }
-  // }
+  // Resend Mail
+
+  @Post('resend-email')
+  async resendMail(email: string) {
+    try {
+      await this.resendEmailUsecase.execute(email);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  // forgot password
+  @Post('forgot-password')
+  async forgotPassword(@Body('email') email: string) {
+    try {
+      await this.forgotPasswordUsecase.execute(email);
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  // update password
+  @Post('update-password')
+  async updatePassword(newPassword: string, token: string) {
+    try {
+      await this.updatePasswordUsecase.execute(newPassword, token);
+    } catch (error) {
+      console.error(error);
+    }
+  }
 }

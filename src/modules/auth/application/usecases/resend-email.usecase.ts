@@ -1,14 +1,13 @@
 import { IUserRepository } from 'src/modules/users/domain/repositories/users-repository.interface';
+import { IResendEmailUsecase } from '../interfaces/auth-usecase.interface';
 import { ITokenService } from '../interfaces/token-service.interface';
-import { Logger } from 'winston';
 import { IMailService } from 'src/core/common/mail/mail.interface';
-import { InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { ISendVerificationMailUsecase } from '../interfaces/auth-usecase.interface';
+import { InternalServerErrorException } from '@nestjs/common';
+import { Logger } from 'winston';
 
-export class SendVerificationMailUseCase
-  implements ISendVerificationMailUsecase
-{
+// tokenService, userRepo, mailService, configService, logger
+export class ResendEmailUsecase implements IResendEmailUsecase {
   constructor(
     private readonly tokenService: ITokenService,
     private readonly userRepo: IUserRepository,
@@ -16,14 +15,8 @@ export class SendVerificationMailUseCase
     private readonly configService: ConfigService,
     private readonly logger: Logger,
   ) {}
-
-  async execute(user: {
-    _id: string;
-    email: string;
-    name?: string;
-  }): Promise<void> {
+  async execute(email: string): Promise<void> {
     try {
-      // const frontendUrl = this.configService.get<string>('app.frontend');
       const config = this.configService.get<{ frontendUrl: string }>(
         'app.frontend',
       );
@@ -33,40 +26,29 @@ export class SendVerificationMailUseCase
         throw new InternalServerErrorException('frontend url not found');
       }
 
-      const token = await this.tokenService.createEmailVerificationToken({
-        userId: user._id,
-        email: user.email,
-      });
+      const user = await this.userRepo.findByEmail(email);
 
-      if (typeof token !== 'string') {
-        throw new InternalServerErrorException('Token generation failed');
+      if (!user) {
+        throw new InternalServerErrorException('User not found');
       }
 
+      const token = await this.tokenService.createEmailVerificationToken({
+        userId: user._id,
+        email: email,
+      });
+
       const verificationLink = `${frontendUrl}/auth/verify-email?token=${token}&email=${encodeURIComponent(user.email)};`;
-      // console.log('link :', verificationLink);
+
       await this.mailService.sendVerificationMail(
         user.email,
         verificationLink,
-        user.name || '',
+        user.profile.name,
       );
-
-      // this.logger.info(`Verification Mail sent to ${user.email}`);
     } catch (error) {
-      // this.logger.error(
-      //   `Failed to send verification mail to ${user?.email}`,
-      //   error,
-      // );
       console.error(error);
       throw new InternalServerErrorException(
         'Unable to send verification mail',
       );
-      // this.logger.error(`Failed to send verification mail to ${user?.email}`, {
-      //   error: error instanceof Error ? error.message : error,
-      // });
-
-      // throw new InternalServerErrorException(
-      //   'Unable to send verification mail',
-      // );
     }
   }
 }

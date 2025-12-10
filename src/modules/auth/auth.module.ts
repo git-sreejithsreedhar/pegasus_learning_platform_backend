@@ -1,11 +1,14 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { RefreshTokenSchema } from './infrastructure/database/models/mongo-refreshToken.schema';
 import { MongoRefreshTokenRepository } from './infrastructure/database/repository/mongo-refresh-token.repository';
 import {
   AUTH_USECASES,
+  IForgotPasswordUsecaseToken,
   ILoginUsecaseToken,
+  IResendEmailUsecaseToken,
   ISendVerificationMailUsecaseToken,
+  IUpdatePasswordUsecaseToken,
   IVerifyMailUsecaseToken,
   PASSWORD_SERVICE,
   REFRESH_TOKEN_REPOSITORY,
@@ -39,12 +42,17 @@ import { SendVerificationMailUseCase } from './application/usecases/send-verific
 import { AuthController } from './presentation/controller/auth.controller';
 import { VerifyEmailUsecase } from './application/usecases/verify-email.usecase';
 import { LoginUseCase } from './application/usecases/login.usecase';
+import { VERIFICATION_TRIGGER } from '../users/application/interfaces/verification-trigger.interface';
+import { ResendEmailUsecase } from './application/usecases/resend-email.usecase';
+import { ForgotPasswordUsecase } from './application/usecases/forgot-password.usecase';
+import { UpdatePasswordUsecase } from './application/usecases/update-password.usecase';
 
 @Module({
   controllers: [AuthController],
   imports: [
     WinstonModule.forRoot(winstonConfig),
-    UsersModule,
+    // UsersModule,
+    forwardRef(() => UsersModule),
     MailModule,
     JwtModule.register({}),
     MongooseModule.forFeature([
@@ -58,6 +66,16 @@ import { LoginUseCase } from './application/usecases/login.usecase';
     JwtStrategy,
     ConfigValidationService,
     // repository for password service
+    SendVerificationMailUseCase,
+    // {
+    //   provide: VERIFICATION_TRIGGER,
+    //   useClass: SendVerificationMailUseCase,
+    // },
+    {
+      provide: VERIFICATION_TRIGGER,
+      useExisting: ISendVerificationMailUsecaseToken,
+    },
+
     {
       provide: PASSWORD_SERVICE,
       useClass: BcryptPasswordHasher,
@@ -77,6 +95,10 @@ import { LoginUseCase } from './application/usecases/login.usecase';
     {
       provide: APP_FILTER,
       useClass: GqlHttpExceptionFilter,
+    },
+    {
+      provide: PASSWORD_SERVICE,
+      useClass: BcryptPasswordHasher,
     },
     // {
     //   provide: ISendVerificationMailUsecaseToken,
@@ -136,7 +158,7 @@ import { LoginUseCase } from './application/usecases/login.usecase';
       ],
     },
 
-    // verify-email
+    // verify email
     {
       provide: IVerifyMailUsecaseToken,
       useFactory: (
@@ -147,6 +169,82 @@ import { LoginUseCase } from './application/usecases/login.usecase';
         return new VerifyEmailUsecase(tokenService, userRepo, logger);
       },
       inject: [TOKEN_SERVICE, USER_REPOSITORY, WINSTON_MODULE_PROVIDER],
+    },
+
+    // resend email
+    {
+      provide: IResendEmailUsecaseToken,
+      useFactory: (
+        tokenService: ITokenService,
+        userRepo: IUserRepository,
+        mailService: IMailService,
+        configService: ConfigService,
+        logger: Logger,
+      ) => {
+        return new ResendEmailUsecase(
+          tokenService,
+          userRepo,
+          mailService,
+          configService,
+          logger,
+        );
+      },
+      inject: [
+        TOKEN_SERVICE,
+        USER_REPOSITORY,
+        IMailServiceToken,
+        ConfigService,
+        WINSTON_MODULE_PROVIDER,
+      ],
+    },
+    // forgot password
+    {
+      provide: IForgotPasswordUsecaseToken,
+      useFactory: (
+        tokenService: ITokenService,
+        userRepo: IUserRepository,
+        mailService: IMailService,
+        configService: ConfigService,
+        logger: Logger,
+      ) => {
+        return new ForgotPasswordUsecase(
+          tokenService,
+          userRepo,
+          mailService,
+          configService,
+          logger,
+        );
+      },
+      inject: [
+        TOKEN_SERVICE,
+        USER_REPOSITORY,
+        IMailServiceToken,
+        ConfigService,
+        WINSTON_MODULE_PROVIDER,
+      ],
+    },
+    // update password
+    {
+      provide: IUpdatePasswordUsecaseToken,
+      useFactory: (
+        tokenService: ITokenService,
+        userRepo: IUserRepository,
+        passwordService: IPasswordService,
+        logger: Logger,
+      ) => {
+        return new UpdatePasswordUsecase(
+          tokenService,
+          userRepo,
+          passwordService,
+          logger,
+        );
+      },
+      inject: [
+        TOKEN_SERVICE,
+        USER_REPOSITORY,
+        PASSWORD_SERVICE,
+        WINSTON_MODULE_PROVIDER,
+      ],
     },
 
     // wiringup usecases
@@ -190,6 +288,7 @@ import { LoginUseCase } from './application/usecases/login.usecase';
     TOKEN_SERVICE,
     AUTH_USECASES,
     PassportModule,
+    VERIFICATION_TRIGGER,
   ],
 })
 export class AuthModule {}

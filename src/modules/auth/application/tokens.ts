@@ -15,3 +15,9 @@ export const IForgotPasswordUsecaseToken = Symbol(
 );
 
 export const ILoginUsecaseToken = Symbol('ILoginUsecaseToken');
+
+export const IResendEmailUsecaseToken = Symbol('IResendMailUsecaseToken');
+
+export const IUpdatePasswordUsecaseToken = Symbol(
+  'IUpdatePasswordUsecaseToken',
+);
