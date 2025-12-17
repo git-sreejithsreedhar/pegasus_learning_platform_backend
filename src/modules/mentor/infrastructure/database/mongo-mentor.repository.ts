@@ -1,37 +1,71 @@
-// import { InjectModel } from '@nestjs/mongoose';
-// import { MentorDocumentsDto } from '../../application/dtos/mentor.dto';
-// import { IMentorRepository } from '../../application/interfaces/mentor-repository.interface';
-// import { MentorModel } from './models/mentor.schema';
-// import { Model } from 'mongoose';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { Mentor } from '../../domain/entities/mentor.entity';
+import { IMentorRepository } from '../../domain/interface/mentor.-repository.interface';
+import { MentorDocument, MentorModel } from './models/mentor.schema';
 
-// export class MongoMentorRepository implements IMentorRepository {
-//   constructor(
-//     @InjectModel(MentorModel.name)
-//     private readonly mentorModel: Model<MentorModel>,
-//   ) {}
+@Injectable()
+export class MentorRepository implements IMentorRepository {
+  constructor(
+    @InjectModel(MentorModel.name)
+    private readonly mentorModel: Model<MentorDocument>,
+  ) {}
 
-//   async create(data: MentorDocumentsDto): Promise<MentorDocumentsDto> {
-//     const mentor = await new this.mentorModel(data).save();
-//     return mentor.toObject();
-//   }
+  async create(data: Mentor): Promise<Mentor> {
+    const doc = new this.mentorModel(data);
+    const saved = await doc.save();
+    return this.toDomain(saved);
+  }
 
-//   async findById(id: string): Promise<MentorDocumentsDto> {
-//     return this.mentorModel.findById(id).lean();
-//   }
+  async update(id: string, data: Partial<Mentor>): Promise<Mentor> {
+    const updated = await this.mentorModel
+      .findByIdAndUpdate(id, data, { new: true })
+      .exec();
 
-//   async updateById(
-//     id: string,
-//     data: Partial<MentorDocumentsDto>,
-//   ): Promise<MentorDocumentsDto> {
-//     return this.mentorModel.findByIdAndUpdate(id, data, { new: true }).lean();
-//   }
+    if (!updated) throw new NotFoundException('Mentor not found');
+    return this.toDomain(updated);
+  }
 
-//   async addDocuments(
-//     id: string,
-//     documents: Record<string, string>,
-//   ): Promise<MentorDocumentsDto> {
-//     return this.mentorModel
-//       .findByIdAndUpdate(id, { $set: { documents } }, { new: true })
-//       .lean();
-//   }
-// }
+  async findByUserId(userId: string): Promise<Mentor | null> {
+    const doc = await this.mentorModel.findOne({ userId }).exec();
+    return doc ? this.toDomain(doc) : null;
+  }
+
+  async findById(id: string): Promise<Mentor | null> {
+    const doc = await this.mentorModel.findById(id).exec();
+    return doc ? this.toDomain(doc) : null;
+  }
+
+  async approveMentor(id: string): Promise<Mentor> {
+    const updated = await this.mentorModel
+      .findByIdAndUpdate(id, { isApproved: true }, { new: true })
+      .exec();
+
+    if (!updated) throw new NotFoundException('Mentor not found');
+
+    return this.toDomain(updated);
+  }
+
+  private toDomain(doc: MentorDocument): Mentor {
+    return new Mentor(
+      doc._id,
+      doc.userId,
+      doc.primarySkill,
+      doc.expertise,
+      doc.skillProficiency,
+      doc.yearsExperience,
+      doc.about,
+      doc.socialLinks,
+      doc.documents,
+      doc.totalStudents,
+      doc.totalCourses,
+      doc.reviews,
+      doc.completionRate,
+      doc.ratings,
+      doc.isApproved,
+      doc.communicationPref,
+      doc.hourlyRate,
+    );
+  }
+}

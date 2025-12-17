@@ -7,7 +7,7 @@ export interface TokenPayload {
   userId: string;
   email?: string;
   role?: string;
-  key?: unknown;
+  // key?: unknown;
   iat?: number;
   exp?: number;
 }

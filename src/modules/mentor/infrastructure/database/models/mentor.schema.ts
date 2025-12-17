@@ -1,75 +1,87 @@
-// import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Schema, Document } from 'mongoose';
 
-// @Schema({ timestamps: true })
-// export class MentorModel {
-//   @Prop({ required: true })
-//   _id: string;
+export interface SocialLinks {
+  linkedin?: string;
+  twitter?: string;
+  youtube?: string;
+  github?: string;
+  website?: string;
+}
 
-//   @Prop({ type: Array })
-//   expertise;
+export interface MentorDocuments {
+  identificationDoc?: string;
+  educationalDoc?: string;
+  professionalDoc?: string;
+  additionalDoc?: string;
+}
 
-//   @Prop({ type: Object })
-//   socialLinks;
+export type MentorDocument = MentorModel & Document;
 
-//   @Prop()
-//   about: string;
+export class MentorModel {
+  _id: string;
+  userId: string;
+  primarySkill: string;
+  expertise: string[];
+  skillProficiency: number;
+  yearsExperience: number;
+  about: string;
+  socialLinks: SocialLinks;
+  documents: MentorDocuments;
+  communicationPref?: string;
+  hourlyRate?: number;
+  totalStudents: number;
+  totalCourses: number;
+  reviews: Review[];
+  completionRate: number;
+  ratings: number[];
+  isApproved: boolean;
+}
 
-//   @Prop({ default: false })
-//   isVerified;
+export const MentorSchema = new Schema(
+  {
+    userId: { type: String, required: true },
+    primarySkill: String,
+    expertise: [String],
+    skillProficiency: Number,
+    yearsExperience: Number,
+    about: String,
 
-//   @Prop({
-//     type: {
-//       isVerified: Boolean,
-//       verifiedAt: Date,
-//       verifiedBy: String,
-//       rejectionReason: String,
-//       documentsReviewed: Boolean,
-//       profileCompleted: Boolean,
-//     },
-//     default: {
-//       isVerified: false,
-//       profileCompleted: true,
-//       documentsReviewed: false,
-//     },
-//   })
-//   verificationStatus;
+    socialLinks: {
+      linkedin: String,
+      twitter: String,
+      youtube: String,
+      github: String,
+      website: String,
+    },
 
-//   @Prop({
-//     type: {
-//       identificationDoc: String,
-//       educationalDoc: String,
-//       professionalDoc: String,
-//       additionalDoc: String,
-//     },
-//     default: {},
-//   })
-//   documents: {
-//     identificationDoc?: string;
-//     educationalDoc?: string;
-//     professionalDoc?: string;
-//     additionalDoc?: string;
-//   };
+    documents: {
+      identificationDoc: String,
+      educationalDoc: String,
+      professionalDoc: String,
+      additionalDoc: String,
+    },
 
-//   @Prop({ default: 0 })
-//   totalStudents: number;
+    communicationPref: String,
+    hourlyRate: Number,
 
-//   @Prop({ default: 0 })
-//   totalCourses: number;
+    // Additional fields
+    totalStudents: { type: Number, default: 0 },
+    totalCourses: { type: Number, default: 0 },
+    reviews: { type: Array, default: [] },
+    completionRate: { type: Number, default: 0 },
+    ratings: { type: [Number], default: [] },
+    isApproved: { type: Boolean, default: false },
+  },
+  { timestamps: true },
+);
 
-//   @Prop({ type: Array, default: [] })
-//   studentReviews;
+// Review
+export interface Review {
+  reviewerId: string;
+  sessionId?: string;
+  comment: string;
+  rating: number;
+  createdAt: Date;
+}
 
-//   @Prop({ default: 0 })
-//   completionRate: number;
-
-//   @Prop({ default: 0 })
-//   rating: number;
-
-//   @Prop({ type: String, default: 'any' })
-//   communicationPreference: string;
-
-//   @Prop()
-//   hourlyRate?: number;
-// }
-
-// export const MentorSchema = SchemaFactory.createForClass(MentorModel);
+export type ReviewDocument = Review & Document;

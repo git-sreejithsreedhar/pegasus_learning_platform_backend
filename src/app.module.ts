@@ -53,7 +53,6 @@ import { MentorModule } from './modules/mentor/mentor.module';
     // Feature Modules
     AuthModule,
     UsersModule,
-
     MentorModule,
   ],
   controllers: [AppController],

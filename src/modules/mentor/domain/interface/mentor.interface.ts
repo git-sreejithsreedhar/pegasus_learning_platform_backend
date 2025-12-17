@@ -1,24 +1,13 @@
-// pending-mentor-response.dto.ts
-export class PendingMentorResponseDto {
-  id: string;
-  email: string;
-  phone: string;
-  yearsExperience: number;
-  primarySkill: string;
+export interface IMentor {
+  _id?: string;
+  userId: string;
 
+  primarySkill: string;
   expertise: string[];
-  customSkills: string[];
   skillProficiency: number;
+  yearsExperience: number;
 
   about: string;
-  communicationPref: string;
-  hourlyRate: number;
-
-  profile: {
-    avatar: string;
-    name: string;
-    bio: string;
-  };
 
   socialLinks: {
     linkedin?: string;
@@ -35,14 +24,16 @@ export class PendingMentorResponseDto {
     additionalDoc?: string;
   };
 
-  verificationStatus: {
-    status: 'pending' | 'approved' | 'rejected';
+  communicationPref?: string;
+  hourlyRate?: number;
+
+  isVerified?: boolean;
+  verificationStatus?: {
+    isVerified: boolean;
     verifiedAt?: Date;
     verifiedBy?: string;
     rejectionReason?: string;
     documentsReviewed: boolean;
+    profileCompleted: boolean;
   };
-
-  createdAt: Date;
-  updatedAt: Date;
 }

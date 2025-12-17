@@ -46,6 +46,8 @@ import { VERIFICATION_TRIGGER } from '../users/application/interfaces/verificati
 import { ResendEmailUsecase } from './application/usecases/resend-email.usecase';
 import { ForgotPasswordUsecase } from './application/usecases/forgot-password.usecase';
 import { UpdatePasswordUsecase } from './application/usecases/update-password.usecase';
+import { JwtAuthGuard } from 'src/core/common/guards/jwt-Auth.guard';
+import { TokenServiceProvider } from './application/providers/token-providers';
 
 @Module({
   controllers: [AuthController],
@@ -55,6 +57,7 @@ import { UpdatePasswordUsecase } from './application/usecases/update-password.us
     forwardRef(() => UsersModule),
     MailModule,
     JwtModule.register({}),
+    // PassportModule.register({ defaultStrategy: 'jwt' }),
     MongooseModule.forFeature([
       { name: 'RefreshToken', schema: RefreshTokenSchema },
     ]),
@@ -63,6 +66,7 @@ import { UpdatePasswordUsecase } from './application/usecases/update-password.us
   ],
 
   providers: [
+    TokenServiceProvider,
     JwtStrategy,
     ConfigValidationService,
     // repository for password service
@@ -71,6 +75,10 @@ import { UpdatePasswordUsecase } from './application/usecases/update-password.us
     //   provide: VERIFICATION_TRIGGER,
     //   useClass: SendVerificationMailUseCase,
     // },
+    {
+      provide: JwtAuthGuard,
+      useClass: JwtAuthGuard, // <-- register guard as provider
+    },
     {
       provide: VERIFICATION_TRIGGER,
       useExisting: ISendVerificationMailUsecaseToken,
@@ -288,7 +296,10 @@ import { UpdatePasswordUsecase } from './application/usecases/update-password.us
     TOKEN_SERVICE,
     AUTH_USECASES,
     PassportModule,
+    JwtStrategy,
     VERIFICATION_TRIGGER,
+    JwtAuthGuard,
+    TokenServiceProvider,
   ],
 })
 export class AuthModule {}

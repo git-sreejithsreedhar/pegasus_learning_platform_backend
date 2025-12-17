@@ -15,8 +15,11 @@ export class UpdatePasswordUsecase implements IUpdatePasswordUsecase {
   async execute(newPassword: string, token: string) {
     try {
       const data = await this.tokenService.verifyEmailVerificationToken(token);
+      if (!data) {
+        throw new HttpException('Invalid token type', 400);
+      }
 
-      const userId = data.payload?.userId;
+      const userId = data?.payload?.userId;
       if (!userId) throw new HttpException('Invalid token payload.', 400);
 
       const user = await this.userRepo.findById(userId);
