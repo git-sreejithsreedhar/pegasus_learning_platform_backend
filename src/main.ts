@@ -7,8 +7,8 @@ import { ValidationPipe } from '@nestjs/common';
 import { WINSTON_MODULE_PROVIDER, WinstonModule } from 'nest-winston';
 import { Logger as WinstonLogger } from 'winston';
 import { HttpExceptionFilter } from './core/common/filters/http-exception.fillters';
-import { GqlHttpExceptionFilter } from './core/common/filters/gql-exception.filters';
-import { GlobalLoggingInterceptor } from './core/common/intercetors/global-logging.interceptor';
+// import { GqlHttpExceptionFilter } from './core/common/filters/gql-exception.filters';
+// import { GlobalLoggingInterceptor } from './core/common/intercetors/global-logging.interceptor';
 import { winstonConfig } from './core/config/logger.config';
 import cookieParser from 'cookie-parser';
 
