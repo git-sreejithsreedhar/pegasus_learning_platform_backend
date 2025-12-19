@@ -2,8 +2,8 @@ import {
   Body,
   Controller,
   Post,
-  UsePipes,
-  ValidationPipe,
+  // UsePipes,
+  // ValidationPipe,
 } from '@nestjs/common';
 import { CreateUserInput } from '../inputs/create-user.input';
 import { UserModel } from '../models/user.type';

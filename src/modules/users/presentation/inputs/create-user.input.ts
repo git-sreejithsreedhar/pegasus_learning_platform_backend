@@ -6,11 +6,7 @@ import {
   MinLength,
   IsEnum,
   IsOptional,
-  ValidateNested,
-  IsArray,
 } from 'class-validator';
-import { Type } from 'class-transformer';
-import { CreateProfileInput } from './create-profile.input';
 import { UserRole } from '../../domain/entities/users.entity';
 
 @InputType()
@@ -32,15 +28,15 @@ export class CreateUserInput {
   @Field(() => UserRole, { nullable: true })
   @IsEnum(UserRole)
   @IsOptional()
-  role?: UserRole;
+  roles?: UserRole[];
 
-  @Field(() => CreateProfileInput)
-  @ValidateNested()
-  @Type(() => CreateProfileInput)
-  profile: CreateProfileInput;
+  // @Field(() => CreateProfileInput)
+  // @ValidateNested()
+  // @Type(() => CreateProfileInput)
+  // profile: CreateProfileInput;
 
-  @Field(() => [String], { nullable: true })
-  @IsArray()
-  @IsOptional()
-  preferences?: string[];
+  // @Field(() => [String], { nullable: true })
+  // @IsArray()
+  // @IsOptional()
+  // preferences?: string[];
 }

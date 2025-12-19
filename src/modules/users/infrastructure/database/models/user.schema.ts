@@ -19,57 +19,49 @@ export class UserPersistence {
   @Prop({ required: true })
   password: string;
 
-  @Prop({
-    type: String,
-    enum: UserRole,
-    default: UserRole.USER,
-  })
-  role: UserRole;
+  @Prop({ required: true })
+  name: string;
 
+  // @Prop({
+  //   type: String,
+  //   enum: UserRole,
+  //   default: UserRole.USER,
+  // })
+  // role: UserRole;
   @Prop({
-    type: {
-      name: { type: String, required: true },
-      avatar: String,
-      bio: String,
-    },
-    required: true,
+    type: [String],
+    enum: UserRole,
+    default: [UserRole.STUDENT],
   })
-  profile: {
-    name: string;
-    avatar?: string;
-    bio?: string;
-  };
+  roles: UserRole[];
+
+  // @Prop({
+  //   type: {
+  //     name: { type: String, required: true },
+  //     avatar: String,
+  //     bio: String,
+  //   },
+  //   required: true,
+  // })
+  // profile: {
+  //   name: string;
+  //   avatar?: string;
+  //   bio?: string;
+  // };
+  @Prop({ default: true })
+  isActive: boolean;
 
   @Prop({ default: false })
   isBlocked: boolean;
 
-  @Prop({ type: [String], default: [] })
-  preferences: string[];
+  // @Prop({ type: [String], default: [] })
+  // preferences: string[];
 
   @Prop({ default: false })
   isEmailVerified: boolean;
 
   @Prop({ type: Date, default: null })
-  lastLogin: Date;
-
-  // @Prop({ type: Date })
-  // createdAt: Date;
-
-  // @Prop({ type: Date })
-  // updatedAt: Date;
+  lastLogin?: Date;
 }
 
 export const UserSchema = SchemaFactory.createForClass(UserPersistence);
-
-// Add MongoDB validation
-// UserSchema.post<UserDocument>(
-//   'save',
-//   function (error: any, doc: any, next: any) {
-//     if (error?.name === 'MongoServerError' && error?.code === 121) {
-//       // const validatorError = new Error('Document validation failed');
-//       next(new Error('Document validation Failed'));
-//     } else {
-//       next(error);
-//     }
-//   },
-// );
