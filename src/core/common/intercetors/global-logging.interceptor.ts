@@ -69,14 +69,6 @@ export class GlobalLoggingInterceptor implements NestInterceptor {
 
         return throwError(() => error);
       }),
-      // catchError((error) => {
-      //   const duration = Date.now() - start;
-      //   this.logger.error(
-      //     `${actionName} failed in ${duration}ms: ${error?.message}`,
-      //   );
-
-      //   throw error; // <<< FIX
-      // }),
     );
   }
 }

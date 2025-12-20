@@ -17,6 +17,7 @@ import { winstonConfig } from './core/config/logger.config';
 import databaseConfig from './core/database/database.config';
 import envConfig from './core/config/env.config';
 import graphqlConfig from './core/config/graphql.config';
+import { MentorModule } from './modules/mentor/mentor.module';
 
 @Module({
   imports: [
@@ -52,6 +53,7 @@ import graphqlConfig from './core/config/graphql.config';
     // Feature Modules
     AuthModule,
     UsersModule,
+    MentorModule,
   ],
   controllers: [AppController],
   providers: [

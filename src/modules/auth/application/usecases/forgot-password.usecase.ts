@@ -29,13 +29,13 @@ export class ForgotPasswordUsecase implements IForgotPasswordUsecase {
       }
 
       const token = await this.tokenService.createEmailVerificationToken({
-        id: user._id,
+        userId: user._id,
         email: user.email,
       });
 
-      const resetLink = `${frontendUrl}/auth/forgot-password/?token=${token}`;
+      const resetLink = `${frontendUrl}/auth/reset-password/?token=${token}`;
 
-      await this.mailService.sendPasswordReset(user.email, resetLink);
+      await this.mailService.sendPasswordReset(email, resetLink);
 
       return { message: 'Password reset mail sent' };
     } catch (error) {

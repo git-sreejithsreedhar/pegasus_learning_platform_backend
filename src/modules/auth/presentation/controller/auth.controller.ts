@@ -1,4 +1,12 @@
-import { Body, Controller, HttpException, Inject, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  HttpException,
+  Inject,
+  Post,
+  Res,
+} from '@nestjs/common';
+import express from 'express';
 import { sendMailDto } from '../inputs/send-mail.dto';
 import {
   IForgotPasswordUsecaseToken,
@@ -34,16 +42,24 @@ export class AuthController {
   @Post('login')
   async login(
     @Body() credentials: LoginInput,
-  ): Promise<{ user: User; accessToken: string; refreshToken: string }> {
+    @Res({ passthrough: true }) res: express.Response,
+  ): Promise<{ user: User; accessToken: string }> {
     const { user, accessToken, refreshToken } = await this.loginUsecase.execute(
       credentials.email,
       credentials.password,
     );
 
+    res.cookie('refresh_token', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
     return {
       user,
       accessToken,
-      refreshToken,
+      // refreshToken,
     };
   }
 
@@ -77,35 +93,34 @@ export class AuthController {
       console.error(error);
     }
   }
-
   // Resend Mail
 
   @Post('resend-email')
-  async resendMail(email: string) {
+  async resendMail(@Body('email') email: string) {
     try {
       await this.resendEmailUsecase.execute(email);
     } catch (error) {
       console.error(error);
+      throw new HttpException('Failed to resend email', 500);
     }
   }
-
   // forgot password
   @Post('forgot-password')
   async forgotPassword(@Body('email') email: string) {
-    try {
-      await this.forgotPasswordUsecase.execute(email);
-    } catch (err) {
-      console.error(err);
-    }
+    return this.forgotPasswordUsecase.execute(email);
+    return { message: 'Password updated successfully' };
   }
-
   // update password
   @Post('update-password')
-  async updatePassword(newPassword: string, token: string) {
+  async updatePassword(
+    @Body('newPassword') newPassword: string,
+    @Body('token') token: string,
+  ) {
     try {
       await this.updatePasswordUsecase.execute(newPassword, token);
     } catch (error) {
       console.error(error);
+      throw new HttpException('Failed to update password', 500);
     }
   }
 }
