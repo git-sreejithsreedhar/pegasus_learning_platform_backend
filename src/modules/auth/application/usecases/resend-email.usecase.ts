@@ -42,7 +42,7 @@ export class ResendEmailUsecase implements IResendEmailUsecase {
       await this.mailService.sendVerificationMail(
         user.email,
         verificationLink,
-        user.profile.name,
+        user.name,
       );
     } catch (error) {
       console.error(error);

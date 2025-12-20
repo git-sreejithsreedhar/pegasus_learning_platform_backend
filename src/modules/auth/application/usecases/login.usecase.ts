@@ -80,7 +80,7 @@ export class LoginUseCase implements ILoginUsecase {
       const tokens = await this.tokenService.generateTokenPair({
         userId: user._id,
         email: user.email,
-        role: user.role,
+        roles: user.roles,
       });
 
       // Hash Refresh Token

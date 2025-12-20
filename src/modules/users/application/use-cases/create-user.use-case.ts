@@ -6,11 +6,6 @@ import { Inject } from '@nestjs/common';
 import type { IPasswordService } from 'src/core/common/security/password-hasher.interface';
 import * as verificationTriggerInterface from '../interfaces/verification-trigger.interface';
 export class CreateUserUseCase {
-  // constructor(
-  //   private readonly userRepository: IUserRepository,
-  //   private readonly passwordService: IPasswordService,
-  // ) {}
-
   constructor(
     @Inject(USER_REPOSITORY)
     private readonly userRepository: IUserRepository,

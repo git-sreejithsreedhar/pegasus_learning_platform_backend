@@ -11,17 +11,17 @@ registerEnumType(UserRole, {
   description: 'Roles available for users',
 });
 
-@ObjectType()
-export class UserProfileModel {
-  @Field()
-  name: string;
+// @ObjectType()
+// export class UserProfileModel {
+//   @Field()
+//   name: string;
 
-  @Field({ nullable: true })
-  avatar?: string;
+//   @Field({ nullable: true })
+//   avatar?: string;
 
-  @Field({ nullable: true })
-  bio?: string;
-}
+//   @Field({ nullable: true })
+//   bio?: string;
+// }
 
 @ObjectType()
 export class UserModel {
@@ -32,10 +32,10 @@ export class UserModel {
   email: string;
 
   @Field(() => UserRole)
-  role: UserRole;
+  roles: UserRole[];
 
-  @Field(() => UserProfileModel)
-  profile: UserProfileModel;
+  // @Field(() => UserProfileModel)
+  // profile: UserProfileModel;
 
   @Field({ nullable: true })
   isBlocked?: boolean;
@@ -43,8 +43,11 @@ export class UserModel {
   @Field({ nullable: true })
   isEmailVerified?: boolean;
 
-  @Field(() => [String], { nullable: true })
-  preferences?: string[];
+  @Field({ nullable: true })
+  isActive?: boolean;
+
+  // @Field(() => [String], { nullable: true })
+  // preferences?: string[];
 
   @Field(() => GraphQLISODateTime, { nullable: true })
   lastLogin?: Date;
