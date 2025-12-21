@@ -4,6 +4,8 @@ import { Model } from 'mongoose';
 import { Mentor } from '../../domain/entities/mentor.entity';
 import { IMentorRepository } from '../../domain/interface/mentor.-repository.interface';
 import { MentorDocument, MentorModel } from './models/mentor.schema';
+import { PagePaginationQuery } from 'src/core/common/pagination/pagination.interface';
+import { mongoPagePaginate } from 'src/core/common/pagination/mongo-pagination.util';
 
 @Injectable()
 export class MentorRepository implements IMentorRepository {
@@ -11,6 +13,15 @@ export class MentorRepository implements IMentorRepository {
     @InjectModel(MentorModel.name)
     private readonly mentorModel: Model<MentorDocument>,
   ) {}
+
+  async findWithPagination(query: PagePaginationQuery) {
+    return mongoPagePaginate(
+      this.mentorModel,
+      {},
+      query.page ?? 1,
+      query.limit ?? 10,
+    );
+  }
 
   async create(data: Mentor): Promise<Mentor> {
     const doc = new this.mentorModel(data);
@@ -45,6 +56,11 @@ export class MentorRepository implements IMentorRepository {
     if (!updated) throw new NotFoundException('Mentor not found');
 
     return this.toDomain(updated);
+  }
+
+  async getAllMentors(): Promise<Mentor[]> {
+    const documents = await this.mentorModel.find({}).exec();
+    return documents.filter((doc) => this.toDomain(doc));
   }
 
   private toDomain(doc: MentorDocument): Mentor {

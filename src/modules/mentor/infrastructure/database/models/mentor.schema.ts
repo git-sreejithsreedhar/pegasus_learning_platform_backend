@@ -85,6 +85,14 @@ export const MentorSchema = new Schema(
   { timestamps: true },
 );
 
+MentorSchema.index({ userId: 1 }, { unique: true });
+MentorSchema.index({ isApproved: 1 });
+MentorSchema.index({ primarySkill: 1, isApproved: 1 });
+MentorSchema.index({ hourlyRate: 1, isApproved: 1 });
+MentorSchema.index({ yearsExperience: -1 });
+MentorSchema.index({ expertise: 1 });
+MentorSchema.index({ primarySkill: 'text' }, { name: 'MentorSearchIndex' });
+
 // Review
 export interface Review {
   reviewerId: string;
