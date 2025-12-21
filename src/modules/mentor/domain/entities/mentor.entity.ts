@@ -7,6 +7,11 @@ export interface MentorDocuments {
   additionalDoc?: string;
 }
 
+export interface Profile {
+  bio?: string;
+  avatar?: string;
+}
+
 export class Mentor {
   constructor(
     public readonly _id: string | undefined,
@@ -16,6 +21,7 @@ export class Mentor {
     public readonly skillProficiency: number,
     public readonly yearsExperience: number,
     public readonly about: string,
+    public readonly profile: Profile,
     public readonly socialLinks: {
       linkedin?: string;
       twitter?: string;

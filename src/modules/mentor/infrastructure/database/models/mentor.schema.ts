@@ -15,6 +15,11 @@ export interface MentorDocuments {
   additionalDoc?: string;
 }
 
+export interface Profile {
+  bio?: string;
+  avatar?: string;
+}
+
 export type MentorDocument = MentorModel & Document;
 
 export class MentorModel {
@@ -25,6 +30,7 @@ export class MentorModel {
   skillProficiency: number;
   yearsExperience: number;
   about: string;
+  profile: Profile;
   socialLinks: SocialLinks;
   documents: MentorDocuments;
   communicationPref?: string;
@@ -52,6 +58,11 @@ export const MentorSchema = new Schema(
       youtube: String,
       github: String,
       website: String,
+    },
+
+    profile: {
+      bio: String,
+      avatar: String,
     },
 
     documents: {
