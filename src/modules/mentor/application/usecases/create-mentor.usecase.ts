@@ -44,17 +44,17 @@ export class CreateMentorUsecase implements ICreateMentorUsecase {
       //   additionalDoc: documents['additionalDoc'],
       // };
 
-     const finalDocuments = {
+      const finalDocuments = {
         identificationDoc: mentorData.documents?.identificationDoc,
         educationalDoc: mentorData.documents?.educationalDoc,
         professionalDoc: mentorData.documents?.professionalDoc,
         additionalDoc: mentorData.documents?.additionalDoc,
       };
-      user.profile = {
-        name: mentorData.profile?.name || user.profile?.name,
-        avatar: mentorData.profile?.avatar || user.profile?.avatar,
-        bio: mentorData.profile?.bio || user.profile?.bio,
-      };
+      // user.profile = {
+      //   name: mentorData.profile?.name || user.profile?.name,
+      //   avatar: mentorData.profile?.avatar || user.profile?.avatar,
+      //   bio: mentorData.profile?.bio || user.profile?.bio,
+      // };
 
       await this.userRepo.update(user);
 
@@ -66,6 +66,7 @@ export class CreateMentorUsecase implements ICreateMentorUsecase {
         mentorData.skillProficiency ?? 1,
         mentorData.yearsExperience ?? 0,
         mentorData.about ?? '',
+        mentorData.profile || {},
         mentorData.socialLinks || {},
         finalDocuments,
         // mentorData.documents,

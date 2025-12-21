@@ -56,6 +56,7 @@ export class MentorRepository implements IMentorRepository {
       doc.skillProficiency,
       doc.yearsExperience,
       doc.about,
+      doc.profile,
       doc.socialLinks,
       doc.documents,
       doc.totalStudents,
