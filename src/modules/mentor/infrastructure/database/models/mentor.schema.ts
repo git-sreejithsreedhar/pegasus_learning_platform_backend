@@ -16,8 +16,8 @@ export interface MentorDocuments {
 }
 
 export interface Profile {
-  bio?: string;
   avatar?: string;
+  bio?: string;
 }
 
 export type MentorDocument = MentorModel & Document;
@@ -51,6 +51,10 @@ export const MentorSchema = new Schema(
     skillProficiency: Number,
     yearsExperience: Number,
     about: String,
+    profile: {
+      avatar: String,
+      bio: String,
+    },
 
     socialLinks: {
       linkedin: String,
@@ -58,11 +62,6 @@ export const MentorSchema = new Schema(
       youtube: String,
       github: String,
       website: String,
-    },
-
-    profile: {
-      bio: String,
-      avatar: String,
     },
 
     documents: {
@@ -85,6 +84,14 @@ export const MentorSchema = new Schema(
   },
   { timestamps: true },
 );
+
+MentorSchema.index({ userId: 1 }, { unique: true });
+MentorSchema.index({ isApproved: 1 });
+MentorSchema.index({ primarySkill: 1, isApproved: 1 });
+MentorSchema.index({ hourlyRate: 1, isApproved: 1 });
+MentorSchema.index({ yearsExperience: -1 });
+MentorSchema.index({ expertise: 1 });
+MentorSchema.index({ primarySkill: 'text' }, { name: 'MentorSearchIndex' });
 
 // Review
 export interface Review {

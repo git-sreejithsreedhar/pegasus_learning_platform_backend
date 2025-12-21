@@ -1,6 +1,3 @@
-import { Provider } from "@nestjs/common";
+import { Provider } from '@nestjs/common';
 
-
-export const MentorProviders : Provider[] = [
-
-]
+export const MentorProviders: Provider[] = [];

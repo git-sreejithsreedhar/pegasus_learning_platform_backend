@@ -66,7 +66,8 @@ export class CreateMentorUsecase implements ICreateMentorUsecase {
         mentorData.skillProficiency ?? 1,
         mentorData.yearsExperience ?? 0,
         mentorData.about ?? '',
-        mentorData.profile,
+
+        mentorData.profile || {},
         mentorData.socialLinks || {},
         finalDocuments,
         // mentorData.documents,

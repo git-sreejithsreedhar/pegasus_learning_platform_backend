@@ -8,8 +8,8 @@ export interface MentorDocuments {
 }
 
 export interface Profile {
-  bio?: string;
   avatar?: string;
+  bio?: string;
 }
 
 export class Mentor {
