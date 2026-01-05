@@ -3,7 +3,7 @@ import { CreateUserDto } from 'src/modules/users/application/dtos/create-user.dt
 
 export enum UserRole {
   STUDENT = 'student',
-  MENTOR = ' mentor',
+  MENTOR = 'mentor',
   ADMIN = 'admin',
   USER = 'USER',
 }

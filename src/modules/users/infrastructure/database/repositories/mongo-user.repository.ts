@@ -48,10 +48,37 @@ export class MongoUserRepository implements IUserRepository {
     await this.userModel.updateOne({ _id: id }, { isBlocked: true });
   }
 
+  // find by IDs
+  async findByIds(ids: string[]): Promise<User[]> {
+    const users = await this.userModel.find({ _id: { $in: ids } }).exec();
+
+    return users.map((doc) => this.toDomain(doc));
+  }
+
   // get all users
   async getAllUsers(): Promise<User[]> {
     const users = await this.userModel.find().exec();
     return users.map((doc) => this.toDomain(doc));
+  }
+
+  async getAllActiveUsers(): Promise<User[]> {
+    const users = await this.userModel.find({ isActive: true }).exec();
+    return users.map((doc) => this.toDomain(doc));
+  }
+
+  async getAllBlockedUsers(): Promise<User[]> {
+    const users = await this.userModel.find({ isBlocked: true }).exec();
+    return users.map((doc) => this.toDomain(doc));
+  }
+
+  async getAllInactiveUsers(): Promise<User[]> {
+    const users = await this.userModel.find({ isActive: false }).exec();
+    return users.map((doc) => this.toDomain(doc));
+  }
+
+  async TotalUsersCount(): Promise<number> {
+    const count = await this.userModel.countDocuments();
+    return count;
   }
 
   private toDomain(userDoc: UserDocument): User {

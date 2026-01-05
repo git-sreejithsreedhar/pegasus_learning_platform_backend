@@ -11,9 +11,11 @@ import { HttpExceptionFilter } from './core/common/filters/http-exception.fillte
 // import { GlobalLoggingInterceptor } from './core/common/intercetors/global-logging.interceptor';
 import { winstonConfig } from './core/config/logger.config';
 import cookieParser from 'cookie-parser';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { join } from 'path';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, {
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     logger: WinstonModule.createLogger(winstonConfig),
   });
 
@@ -25,6 +27,10 @@ async function bootstrap() {
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     optionsSuccessStatus: 200,
+  });
+
+  app.useStaticAssets(join(process.cwd(), 'uploads'), {
+    prefix: '/uploads',
   });
 
   app.setGlobalPrefix('api/v1');

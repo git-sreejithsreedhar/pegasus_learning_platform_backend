@@ -3,7 +3,6 @@ import { Express } from 'express';
 
 export function validateImage(file: Express.Multer.File) {
   const allowed = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif'];
-
   if (!allowed.includes(file.mimetype)) {
     throw new BadRequestException('Invalid avatar image type');
   }

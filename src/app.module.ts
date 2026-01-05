@@ -18,6 +18,7 @@ import databaseConfig from './core/database/database.config';
 import envConfig from './core/config/env.config';
 import graphqlConfig from './core/config/graphql.config';
 import { MentorModule } from './modules/mentor/mentor.module';
+import { AdminModule } from './modules/admin/admin.module';
 
 @Module({
   imports: [
@@ -54,6 +55,7 @@ import { MentorModule } from './modules/mentor/mentor.module';
     AuthModule,
     UsersModule,
     MentorModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [
