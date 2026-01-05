@@ -138,8 +138,8 @@ export class ProfileDto {
   @IsString()
   avatar?: string;
 
-  @IsString()
-  name: string;
+  // @IsString()
+  // name: string;
 
   @IsString()
   bio: string;
@@ -195,8 +195,8 @@ export class MentorRegisterDto {
   // @IsString()
   // name: string;
 
-  @IsString()
-  email: string;
+  // @IsString()
+  // email: string;
 
   @IsString()
   phone: string;

@@ -28,15 +28,7 @@ import {
 
   controllers: [MentorController],
 
-  providers: [
-    ...MentorProviders,
-    ...MentorUsecaseProviders,
-    MentorRepository,
-    // {
-    //   provide: CREATE_MENTOR_USECASE,
-    //   useClass: CreateMentorUsecase,
-    // },
-  ],
+  providers: [...MentorProviders, ...MentorUsecaseProviders, MentorRepository],
 
   exports: [...MentorProviders, ...MentorUsecaseProviders, MentorRepository],
 })
