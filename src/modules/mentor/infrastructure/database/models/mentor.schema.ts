@@ -20,6 +20,28 @@ export interface Profile {
   bio?: string;
 }
 
+export type MentorStatus =
+  | 'approved'
+  | 'rejected'
+  | 'correction_required'
+  | 'pending';
+
+export interface FeedbackCurrent {
+  mentorMessage: string;
+  action: MentorStatus;
+}
+
+export interface FeedbackHistory {
+  mentorMessage: string;
+  action: 'approved' | 'rejected' | 'correction_required' | 'pending';
+  date: Date;
+}
+
+export interface AdminFeedback {
+  current?: FeedbackCurrent;
+  history: FeedbackHistory[];
+}
+
 export type MentorDocument = MentorModel & Document;
 
 export class MentorModel {
@@ -41,6 +63,8 @@ export class MentorModel {
   completionRate: number;
   ratings: number[];
   isApproved: boolean;
+  status: MentorStatus;
+  feedback: AdminFeedback;
 }
 
 export const MentorSchema = new Schema(
@@ -74,6 +98,28 @@ export const MentorSchema = new Schema(
     communicationPref: String,
     hourlyRate: Number,
 
+    // status
+    status: {
+      type: String,
+      enum: ['pending', 'approved', 'rejected', 'correction_required'],
+      default: 'pending',
+    },
+
+    // fedback
+    feedback: {
+      current: {
+        mentorMessage: { type: String },
+        action: { type: String },
+      },
+      history: [
+        {
+          mentorMessage: String,
+          action: String,
+          date: { type: Date, default: Date.now },
+        },
+      ],
+    },
+
     // Additional fields
     totalStudents: { type: Number, default: 0 },
     totalCourses: { type: Number, default: 0 },
@@ -92,6 +138,7 @@ MentorSchema.index({ hourlyRate: 1, isApproved: 1 });
 MentorSchema.index({ yearsExperience: -1 });
 MentorSchema.index({ expertise: 1 });
 MentorSchema.index({ primarySkill: 'text' }, { name: 'MentorSearchIndex' });
+MentorSchema.index({ status: 1 });
 
 // Review
 export interface Review {

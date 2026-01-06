@@ -77,7 +77,7 @@ import { TokenServiceProvider } from './application/providers/token-providers';
     // },
     {
       provide: JwtAuthGuard,
-      useClass: JwtAuthGuard, // <-- register guard as provider
+      useClass: JwtAuthGuard,
     },
     {
       provide: VERIFICATION_TRIGGER,

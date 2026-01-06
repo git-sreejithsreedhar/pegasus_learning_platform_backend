@@ -22,6 +22,9 @@ export class UserPersistence {
   @Prop({ required: true })
   name: string;
 
+  @Prop({})
+  avatar: string;
+
   // @Prop({
   //   type: String,
   //   enum: UserRole,

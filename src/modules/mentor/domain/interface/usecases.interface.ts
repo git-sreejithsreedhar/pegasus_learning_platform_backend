@@ -6,8 +6,23 @@ export interface ICreateMentorUsecase {
   execute(
     userId: string,
     mentorData: MentorRegisterDto,
-    files?: Express.Multer.File[],
-  ): Promise<Mentor | undefined>;
+    // files?: Express.Multer.File[],
+  ): Promise<Mentor>;
+}
+
+// approve mmentor
+export interface IApproveMentorUsecase {
+  execute(mentorId: string): Promise<void>;
+}
+
+// reject mentor
+export interface IRejectMentorUsecase {
+  execute(mentorId: string, reason: string): Promise<void>;
+}
+
+// request correction
+export interface IRequestMentorCorrectionUsecase {
+  execute(mentorId: string, reason: string): Promise<void>;
 }
 
 // export class UpdateMentorUseCase {

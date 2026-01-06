@@ -4,9 +4,17 @@ export interface PagePaginationQuery {
 }
 
 export interface PagePaginatedResult<T> {
-  items: T[];
+  data: T[];
   totalItems: number;
-  totalPages: number;
   currentPage: number;
   limit: number;
+  totalPages: number;
+}
+
+export class PaginatedResultDto<T> {
+  data: T[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
 }

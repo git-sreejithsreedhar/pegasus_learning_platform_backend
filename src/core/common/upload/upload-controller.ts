@@ -1,10 +1,13 @@
 import {
   Controller,
-  Inject,
+  // Inject,
   Post,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
+// import { LocalFileStorageService } from './upload.service';
+// import { FileInterceptor } from '@nestjs/platform-express';
+// import { multerOptions } from './multer.options';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { LocalFileStorageService } from './upload.service';
 import { MulterOptions } from './multer.options';
@@ -14,6 +17,7 @@ export class UploadController {
   constructor(private readonly storage: LocalFileStorageService) {}
 
   @Post('document')
+  // @UseInterceptors(FileInterceptor('file', multerOptions))
   @UseInterceptors(FileInterceptor('file', MulterOptions))
   async uploadFile(@UploadedFile() file: Express.Multer.File) {
     const filePath = await this.storage.save(file);

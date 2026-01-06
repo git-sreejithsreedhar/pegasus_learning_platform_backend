@@ -7,6 +7,12 @@ import {
 } from '../../application/interfaces/token-service.interface';
 import { JwtService, JwtSignOptions, JwtVerifyOptions } from '@nestjs/jwt';
 import { ConfigValidationService } from 'src/core/config/config-validation.service';
+// import {
+//   JsonWebTokenError,
+//   TokenExpiredError as JwtExpiredError,
+// } from 'jsonwebtoken';
+// import { TokenExpiredError } from '../../domain/errors/token-expired.error';
+// import { TokenInvalidError } from '../../domain/errors/token-invalid.error';
 
 export interface JWTConfig {
   accessTokenSecret: string;
@@ -103,20 +109,31 @@ export class JwtTokenService implements ITokenService {
     token: string,
     options: JwtVerifyOptions,
   ): Promise<TokenVerificationResult> {
-    try {
-      const payload = await this.jwtService.verifyAsync<TokenPayload>(
-        token,
-        options,
-      );
-      return { isValid: true, payload };
-    } catch (error: unknown) {
-      return {
-        isValid: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-      };
-    }
+    const payload = await this.jwtService.verifyAsync<TokenPayload>(
+      token,
+      options,
+    );
+    return { isValid: true, payload };
   }
 }
+// private async verifyToken(
+//   token: string,
+//   options: JwtVerifyOptions,
+// ): Promise<TokenPayload> {
+//   try {
+//     return await this.jwtService.verifyAsync<TokenPayload>(token, options);
+//   } catch (error) {
+//     if (error instanceof TokenExpiredError) {
+//       throw new TokenExpiredError();
+//     }
+
+//     if (error instanceof JsonWebTokenError) {
+//       throw new TokenInvalidError();
+//     }
+
+//     throw error; // unknown infra failure
+//   }
+// }
 
 //   async revokeToken(token: string): Promise<void> {
 //     try {
@@ -125,5 +142,5 @@ export class JwtTokenService implements ITokenService {
 //       throw new BadRequestException();
 //     }
 //   }
-
+// }
 // }
