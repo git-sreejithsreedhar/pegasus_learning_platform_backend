@@ -6,7 +6,6 @@ import {
   Param,
   Patch,
   Query,
-  UseGuards,
 } from '@nestjs/common';
 import * as usecasesInterface from '../../application/interfaces/usecases.interface';
 import type {
