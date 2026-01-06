@@ -87,6 +87,7 @@ export class MongoUserRepository implements IUserRepository {
       email: userDoc.email,
       password: userDoc.password,
       name: userDoc.name,
+      avatar: userDoc.avatar,
       roles: userDoc.roles,
       isActive: userDoc.isActive,
       // profile: new UserProfile(
@@ -110,6 +111,7 @@ export class MongoUserRepository implements IUserRepository {
       email: user.email,
       password: user.password,
       name: user.name,
+      avatar: user.avatar,
       roles: user.roles,
       // profile: {
       //   name: user.profile.name,

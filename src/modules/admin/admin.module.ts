@@ -8,9 +8,11 @@ import {
 } from './application/tokens';
 import { GetAllMentorsUsecase } from './application/usecases/get-all-mentors.usecase';
 import { GetMentorDetailsUsecase } from './application/usecases/get-mentor-details.usecase';
+import { RolesGuard } from 'src/core/common/guards/roles.guard';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
-  imports: [UsersModule, MentorModule],
+  imports: [AuthModule, UsersModule, MentorModule],
 
   controllers: [AdminController],
 
@@ -23,6 +25,7 @@ import { GetMentorDetailsUsecase } from './application/usecases/get-mentor-detai
       provide: GET_MENTOR_DETAILS_USECASE,
       useClass: GetMentorDetailsUsecase,
     },
+    RolesGuard,
   ],
 
   exports: [],

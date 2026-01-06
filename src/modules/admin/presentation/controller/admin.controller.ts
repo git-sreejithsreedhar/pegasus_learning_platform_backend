@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import * as usecasesInterface from '../../application/interfaces/usecases.interface';
 import type {
@@ -43,6 +44,7 @@ export class AdminController {
     private readonly approveMentorUsecase: IApproveMentorUsecase,
   ) {}
 
+  // @UseGuards(JwtAuthGuard)
   @Get('mentors')
   async getAllMentors(
     @Query('page') page?: number,
@@ -61,6 +63,8 @@ export class AdminController {
   }
 
   // get mentor details
+  // @UseGuards(JwtAuthGuard, RolesGuard)
+  // @Roles(UserRole.Admin)
   @Get('mentor/:id')
   async GetMentorDetails(
     @Param('id') mentorId: string,

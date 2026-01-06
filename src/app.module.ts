@@ -19,6 +19,9 @@ import envConfig from './core/config/env.config';
 import graphqlConfig from './core/config/graphql.config';
 import { MentorModule } from './modules/mentor/mentor.module';
 import { AdminModule } from './modules/admin/admin.module';
+import { APP_GUARD } from '@nestjs/core';
+import { JwtAuthGuard } from './core/common/guards/jwt-Auth.guard';
+import { RolesGuard } from './core/common/guards/roles.guard';
 
 @Module({
   imports: [
@@ -67,6 +70,8 @@ import { AdminModule } from './modules/admin/admin.module';
       provide: JwtTokenService,
       useClass: JwtTokenService,
     },
+    // { provide: APP_GUARD, useClass: RolesGuard },
+    // { provide: APP_GUARD, useClass: JwtAuthGuard },
   ],
 })
 export class AppModule {

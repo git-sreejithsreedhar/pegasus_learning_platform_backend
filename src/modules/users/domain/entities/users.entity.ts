@@ -21,15 +21,12 @@ export interface toDomain {
   email: string;
   password: string;
   name: string;
-  // role: string;
+  avatar: string;
   roles: UserRole[];
-  // profile: UserProfile;
   isActive: boolean;
   isBlocked: boolean;
   isEmailVerified: boolean;
-  // preferences: string[];
   lastLogin: Date;
-  // refreshToken: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -39,6 +36,7 @@ export interface UserReconstitutionProps {
   email: string;
   password: string;
   name: string;
+  avatar?: string;
   // role: UserRole;
   roles: UserRole[];
   // profile: UserProfile;
@@ -57,6 +55,7 @@ export class User {
   public email: string;
   public password: string;
   public name: string;
+  public avatar: string;
   // public role: UserRole;
   public roles: UserRole[];
   // public profile: UserProfile;
@@ -74,6 +73,7 @@ export class User {
     email: string,
     password: string,
     name: string,
+    avatar: string,
     // role: UserRole,
     roles: UserRole[],
     // profile: UserProfile,
@@ -110,6 +110,7 @@ export class User {
       dto.email,
       dto.password,
       dto.name,
+      dto.avatar ?? '',
       dto.roles ?? [UserRole.STUDENT],
       // dto.profile,
       true,
@@ -128,6 +129,7 @@ export class User {
     email: string;
     password: string;
     name: string;
+    avatar: string;
     roles: UserRole[];
     // profile: UserProfile;
     isActive: boolean;
@@ -144,6 +146,7 @@ export class User {
       props.email,
       props.password,
       props.name,
+      props.avatar,
       props.roles,
       // props.profile,
       props.isActive,
