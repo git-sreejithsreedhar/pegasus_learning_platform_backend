@@ -1,6 +1,6 @@
 import { Logger } from 'winston';
 import { IMentorRepository } from '../../domain/interface/mentor.repository.interface';
-import { IRequestMentorCorrectionUsecase } from '../../domain/interface/usecases.interface';
+import { IRequestMentorCorrectionUsecase } from '../IUseCase/usecases.interface';
 
 export class RequestMentorCorrectionUsecase
   implements IRequestMentorCorrectionUsecase

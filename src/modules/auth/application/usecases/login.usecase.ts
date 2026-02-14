@@ -40,15 +40,6 @@ export class LoginUseCase implements ILoginUsecase {
       throw new UserBlockedError();
     }
 
-    // if (!user.isEmailVerified) {
-    //   this.logger.warn(`Login failed - email not verified: ${email}`);
-    //   throw new EmailNotVerifiedError();
-    // throw new HttpException(
-    //   ResponseConstants.MAIL_NOT_VERIFIED.message,
-    //   ResponseConstants.MAIL_NOT_VERIFIED.statusCode,
-    // );
-    // }
-
     const isValid = await this.passwordService.compare(
       passwordVO.stringValue,
       user.password,

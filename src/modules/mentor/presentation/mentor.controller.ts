@@ -8,165 +8,76 @@ import {
   UnauthorizedException,
   UploadedFiles,
   UseGuards,
-  // UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
-import { MentorRegisterDto } from './dto/create-mentor.dto';
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
-import * as usecasesInterface from '../domain/interface/usecases.interface';
-import { CREATE_MENTOR_USECASE } from '../domain/tokens/injection-tokens.constant';
-import { JwtAuthGuard } from 'src/core/common/guards/jwt-Auth.guard';
 import type { Request } from 'express';
-import * as fileStorageInterface from 'src/core/common/upload/file-storage.interface';
+
+import {
+  MentorRegisterDto,
+  ProfileDto,
+  SocialLinksDto,
+} from './dto/create-mentor.dto';
+
+import { CREATE_MENTOR_USECASE } from '../domain/tokens/injection-tokens.constant';
+import type { ICreateMentorUsecase } from '../application/IUseCase/usecases.interface';
+
+import { JwtAuthGuard } from 'src/core/common/guards/jwt-Auth.guard';
 import { FILE_STORAGE } from 'src/core/common/upload/file-storage.token';
-import { MulterOptions } from 'src/core/common/upload/multer.options';
+import type { IFileStorageService } from 'src/core/common/upload/file-storage.interface';
+
+import { CloudMulterOptions } from 'src/core/common/upload/multer/multer-cloudinary.options';
 import {
   validateImage,
   validatePdf,
 } from 'src/core/common/upload/validation-helper';
-
-interface MentorRegisterMultipartBody {
-  primarySkill: string;
-
-  expertise?: string; // JSON string
-  customSkills?: string; // if still sent by FE, otherwise remove
-  profile?: string; // JSON string
-  socialLinks?: string; // JSON string
-
-  skillProficiency?: string;
-  yearsExperience?: string;
-  hourlyRate?: string;
-}
-
-// interface AuthenticatedRequest extends Request {
-//   user: {
-//     userId: string;
-//   };
-// }
+import { safeJsonParse } from 'src/core/utils/json.util';
 
 @Controller('mentor')
 export class MentorController {
   constructor(
     @Inject(FILE_STORAGE)
-    private readonly storage: fileStorageInterface.IFileStorage,
-    private readonly jwtAuthGuard: JwtAuthGuard,
+    private readonly storage: IFileStorageService,
+
     @Inject(CREATE_MENTOR_USECASE)
-    private readonly createMentorUsecase: usecasesInterface.ICreateMentorUsecase,
+    private readonly createMentorUsecase: ICreateMentorUsecase,
   ) {}
-
-  // @Post('register')
-  // @UseGuards(JwtAuthGuard)
-  // @UseInterceptors(AnyFilesInterceptor(MulterOptions))
-  // async registerMentor(
-  //   @Req() req: Express.Request,
-  //   @Body() body: any,
-  //   @UploadedFiles() files: Express.Multer.File[],
-  // ) {
-  //   const user = req.user as any;
-  //   // console.log(user)
-  //   if (!user?.userId) {
-  //     throw new UnauthorizedException('User not authenticated');
-  //   }
-
-  //   const userId = user.userId;
-
-  //   /* ---------------- Parse JSON fields ---------------- */
-  //   try {
-  //     ['profile', 'socialLinks', 'expertise', 'customSkills'].forEach((key) => {
-  //       if (typeof body[key] === 'string') {
-  //         body[key] = JSON.parse(body[key]);
-  //       }
-  //     });
-
-  //     body.skillProficiency = Number(body.skillProficiency);
-  //     body.yearsExperience = Number(body.yearsExperience);
-  //     body.hourlyRate = Number(body.hourlyRate);
-  //   } catch {
-  //     throw new BadRequestException('Invalid JSON in form data');
-  //   }
-
-  //   /* ---------------- Validate DTO ---------------- */
-  //   const dto = plainToInstance(MentorRegisterDto, body);
-  //   const errors = await validate(dto);
-  //   if (errors.length) throw new BadRequestException(errors);
-
-  //   /* ---------------- Handle Avatar ---------------- */
-  //   const avatarFile = files.find((f) => f.fieldname === 'avatar');
-  //   if (avatarFile) {
-  //     validateImage(avatarFile);
-  //     body.profile.avatar = await this.storage.save(avatarFile);
-  //   }
-
-  //   /* ---------------- Handle Documents ---------------- */
-  //   const getPdfPath = async (field: string) => {
-  //     const file = files.find((f) => f.fieldname === field);
-  //     if (!file) return null;
-  //     validatePdf(file);
-  //     return this.storage.save(file);
-  //   };
-
-  //   body.documents = {
-  //     identificationDoc: await getPdfPath('identificationDoc'),
-  //     educationalDoc: await getPdfPath('educationalDoc'),
-  //     professionalDoc: await getPdfPath('professionalDoc'),
-  //     additionalDoc: await getPdfPath('additionalDoc'),
-  //   };
-
-  //   /* ---------------- Create mentor ---------------- */
-  //   await this.createMentorUsecase.execute(userId, body);
-
-  //   return { success: true };
-  // }
-  // }
 
   @Post('register')
   @UseGuards(JwtAuthGuard)
-  @UseInterceptors(AnyFilesInterceptor(MulterOptions))
+  @UseInterceptors(AnyFilesInterceptor(CloudMulterOptions))
   async registerMentor(
     @Req() req: Request,
-    @Body() body: MentorRegisterMultipartBody,
+    @Body() body: any,
     @UploadedFiles() files: Express.Multer.File[],
   ) {
+    console.log('REGISTER HIT');
+
+    // ---------------- Auth ----------------
     if (!req.user) {
       throw new UnauthorizedException('User not authenticated');
     }
-
     const userId = req.user.userId;
 
-    /* ---------------- Parse JSON fields ---------------- */
-    const parsedBody: Partial<MentorRegisterDto> = {};
+    // ---------------- Parse body ----------------
+    const parsedBody: Partial<MentorRegisterDto> = {
+      phone: body.phone,
+      about: body.about,
+      primarySkill: body.primarySkill,
+      communicationPref: body.communicationPref,
 
-    try {
-      if (typeof body.profile === 'string') {
-        parsedBody.profile = JSON.parse(body.profile);
-      }
+      skillProficiency: Number(body.skillProficiency),
+      yearsExperience: Number(body.yearsExperience),
+      hourlyRate: Number(body.hourlyRate),
 
-      if (typeof body.socialLinks === 'string') {
-        parsedBody.socialLinks = JSON.parse(body.socialLinks);
-      }
+      expertise: safeJsonParse<string[]>(body.expertise, []),
+      profile: safeJsonParse<ProfileDto>(body.profile, { bio: '' }),
+      socialLinks: safeJsonParse<SocialLinksDto>(body.socialLinks, {}),
+    };
 
-      if (typeof body.expertise === 'string') {
-        parsedBody.expertise = JSON.parse(body.expertise);
-      }
-
-      parsedBody.primarySkill = body.primarySkill;
-      parsedBody.skillProficiency = body.skillProficiency
-        ? Number(body.skillProficiency)
-        : 1;
-
-      parsedBody.yearsExperience = body.yearsExperience
-        ? Number(body.yearsExperience)
-        : 0;
-
-      parsedBody.hourlyRate = body.hourlyRate ? Number(body.hourlyRate) : 0;
-    } catch {
-      throw new BadRequestException('Invalid JSON in form data');
-    }
-
-    /* ---------------- Validate DTO ---------------- */
-    const dto = plainToInstance(MentorRegisterDto, body, {
+    const dto = plainToInstance(MentorRegisterDto, parsedBody, {
       enableImplicitConversion: true,
     });
 
@@ -175,15 +86,28 @@ export class MentorController {
       throw new BadRequestException(errors);
     }
 
-    /* ---------------- Handle Avatar ---------------- */
+    const safeFiles = Array.isArray(files) ? files: [];
+
+    console.log(safeFiles);
+
+    // ---------------- Avatar upload ----------------
     const avatarFile = files.find((f) => f.fieldname === 'avatar');
     if (avatarFile) {
       validateImage(avatarFile);
-      dto.profile.avatar = await this.storage.save(avatarFile);
+
+      const upload = await this.storage.uploadBuffer(
+        `mentors/${userId}/avatar`,
+        avatarFile.buffer,
+        { contentType: avatarFile.mimetype },
+      );
+
+      dto.profile.avatar = upload.url;
     }
 
-    /* ---------------- Handle Documents ---------------- */
-    const getPdfPath = async (
+    console.log('ABOUT TO UPLOAD FILE');
+
+    // ---------------- Document uploads ----------------
+    const getPdfUrl = async (
       field:
         | 'identificationDoc'
         | 'educationalDoc'
@@ -192,20 +116,34 @@ export class MentorController {
     ): Promise<string | undefined> => {
       const file = files.find((f) => f.fieldname === field);
       if (!file) return undefined;
+
       validatePdf(file);
-      return this.storage.save(file);
+
+      const upload = await this.storage.uploadBuffer(
+        `mentors/${userId}/documents/${file.originalname}`,
+        file.buffer,
+        { contentType: file.mimetype },
+      );
+
+      return upload.url;
     };
 
     dto.documents = {
-      identificationDoc: await getPdfPath('identificationDoc'),
-      educationalDoc: await getPdfPath('educationalDoc'),
-      professionalDoc: await getPdfPath('professionalDoc'),
-      additionalDoc: await getPdfPath('additionalDoc'),
+      identificationDoc: await getPdfUrl('identificationDoc'),
+      educationalDoc: await getPdfUrl('educationalDoc'),
+      professionalDoc: await getPdfUrl('professionalDoc'),
+      additionalDoc: await getPdfUrl('additionalDoc'),
     };
 
-    /* ---------------- Create mentor ---------------- */
-    await this.createMentorUsecase.execute(userId, dto);
+    console.log('UPLOAD DONE');
 
-    return { success: true };
+    // ---------------- Create mentor ----------------
+    const result = await this.createMentorUsecase.execute(userId, dto);
+
+    if (result.type === 'STATUS') {
+      return result;
+    }
+
+    return result;
   }
 }

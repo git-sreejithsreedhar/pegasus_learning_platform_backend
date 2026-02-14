@@ -1,63 +1,55 @@
+// upload/upload.controller.ts
 import {
   Controller,
-  // Inject,
   Post,
   UploadedFile,
   UseInterceptors,
+  BadRequestException,
 } from '@nestjs/common';
-// import { LocalFileStorageService } from './upload.service';
-// import { FileInterceptor } from '@nestjs/platform-express';
-// import { multerOptions } from './multer.options';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { LocalFileStorageService } from './upload.service';
-import { MulterOptions } from './multer.options';
+import { createCloudinaryStorage } from './clodinary/cloudinary.storage';
+import { UploadService } from './upload.service';
 
 @Controller('upload')
 export class UploadController {
-  constructor(private readonly storage: LocalFileStorageService) {}
+  constructor(private readonly uploadService: UploadService) {}
 
-  @Post('document')
-  // @UseInterceptors(FileInterceptor('file', multerOptions))
-  @UseInterceptors(FileInterceptor('file', MulterOptions))
-  async uploadFile(@UploadedFile() file: Express.Multer.File) {
-    const filePath = await this.storage.save(file);
-    return { filePath };
+  @Post('image')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: createCloudinaryStorage('images'),
+      fileFilter: (req, file, cb) => {
+        if (!file.mimetype.startsWith('image/')) {
+          return cb(new BadRequestException('Only images allowed'), false);
+        }
+        cb(null, true);
+      },
+      limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+    }),
+  )
+  uploadImage(@UploadedFile() file: Express.Multer.File) {
+    return this.uploadService.formatResponse(file);
+  }
+
+  @Post('video')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: createCloudinaryStorage('videos'),
+      limits: { fileSize: 100 * 1024 * 1024 }, // 100MB
+    }),
+  )
+  uploadVideo(@UploadedFile() file: Express.Multer.File) {
+    return this.uploadService.formatResponse(file);
+  }
+
+  @Post('file')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: createCloudinaryStorage('files'),
+      limits: { fileSize: 20 * 1024 * 1024 }, // 20MB
+    }),
+  )
+  uploadFile(@UploadedFile() file: Express.Multer.File) {
+    return this.uploadService.formatResponse(file);
   }
 }
-
-// import { imageMulterOptions } from './multer.image.options';
-// import * as fileStorageInterface from './file-storage.interface';
-// import { FILE_STORAGE } from './file-storage.token';
-// // import { documentMulterOptions } from './multer.document.option';
-
-// @Controller('upload')
-// export class UploadController {
-//   constructor(
-//     @Inject(FILE_STORAGE)
-//     private readonly storage: fileStorageInterface.IFileStorage,
-//   ) {}
-
-//   //image upload
-//   @Post('image')
-//   @UseInterceptors(FileInterceptor('file', imageMulterOptions))
-//   async uploadImage(@UploadedFile() file: Express.Multer.File) {
-//     const filePath = await this.storage.save(file);
-//     return {
-//       success: true,
-//       type: 'image',
-//       filePath,
-//     };
-//   }
-
-//   // Document upload
-//   @Post('document')
-//   @UseInterceptors(FileInterceptor('file', documentMulterOptions))
-//   async uploadDocument(@UploadedFile() file: Express.Multer.File) {
-//     const filePath = await this.storage.save(file);
-//     return {
-//       success: true,
-//       type: 'document',
-//       filePath,
-//     };
-//   }
-// }

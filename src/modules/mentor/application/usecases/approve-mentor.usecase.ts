@@ -1,5 +1,5 @@
 import { Inject, NotFoundException } from '@nestjs/common';
-import { IApproveMentorUsecase } from '../../domain/interface/usecases.interface';
+import { IApproveMentorUsecase } from '../IUseCase/usecases.interface';
 import * as mentorRepositoryInterface from '../../domain/interface/mentor.repository.interface';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';

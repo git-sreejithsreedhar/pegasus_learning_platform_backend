@@ -1,6 +1,6 @@
 import { Logger } from 'winston';
 import * as mentorRepositoryInterface from '../../domain/interface/mentor.repository.interface';
-import { IRejectMentorUsecase } from '../../domain/interface/usecases.interface';
+import { IRejectMentorUsecase } from '../IUseCase/usecases.interface';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Inject } from '@nestjs/common';
 import { MENTOR_REPOSITORY_TOKEN } from '../../domain/tokens/injection-tokens.constant';

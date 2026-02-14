@@ -57,7 +57,6 @@ import { TokenServiceProvider } from './application/providers/token-providers';
     forwardRef(() => UsersModule),
     MailModule,
     JwtModule.register({}),
-    // PassportModule.register({ defaultStrategy: 'jwt' }),
     MongooseModule.forFeature([
       { name: 'RefreshToken', schema: RefreshTokenSchema },
     ]),
@@ -108,11 +107,6 @@ import { TokenServiceProvider } from './application/providers/token-providers';
       provide: PASSWORD_SERVICE,
       useClass: BcryptPasswordHasher,
     },
-    // {
-    //   provide: ISendVerificationMailUsecaseToken,
-    //   useClass: SendVerificationMailUseCase,
-    // },
-    // send-verification-mail
     {
       provide: ISendVerificationMailUsecaseToken,
       useFactory: (

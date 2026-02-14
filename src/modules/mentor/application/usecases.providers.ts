@@ -5,7 +5,8 @@ import { Logger } from 'winston';
 import { FILE_STORAGE } from 'src/core/common/upload/file-storage.token';
 import { CreateMentorUsecase } from './usecases/create-mentor.usecase';
 import { IUserRepository } from 'src/modules/users/domain/repositories/users-repository.interface';
-import { IFileStorage } from 'src/core/common/upload/file-storage.interface';
+// import { IFileStorage } from 'src/core/common/upload/file-storage.interface';
+import { IFileStorageService } from 'src/core/common/upload/file-storage.interface';
 import {
   APPROVE_MENTOR_USECASE,
   CREATE_MENTOR_USECASE,
@@ -24,9 +25,10 @@ export const MentorUsecaseProviders: Provider[] = [
     useFactory: (
       mentorRepo: IMentorRepository,
       userRepo: IUserRepository,
-      fileStorage: IFileStorage,
+      // fileStorage: IFileStorageService,
       logger: Logger,
-    ) => new CreateMentorUsecase(mentorRepo, userRepo, fileStorage, logger),
+    ) =>
+      new CreateMentorUsecase(mentorRepo, userRepo, /* fileStorage,*/ logger),
     inject: [
       MENTOR_REPOSITORY_TOKEN,
       USER_REPOSITORY,

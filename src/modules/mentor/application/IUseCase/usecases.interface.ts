@@ -1,4 +1,5 @@
-import { Mentor } from '../../domain/entities/mentor.entity';
+import { CreateMentorResponse } from '../dto/create-mentor.response';
+// import { Mentor } from '../../domain/entities/mentor.entity';
 import { MentorRegisterDto } from '../../presentation/dto/create-mentor.dto';
 
 // create mentor usecase interface
@@ -7,7 +8,7 @@ export interface ICreateMentorUsecase {
     userId: string,
     mentorData: MentorRegisterDto,
     // files?: Express.Multer.File[],
-  ): Promise<Mentor>;
+  ): Promise<CreateMentorResponse>;
 }
 
 // approve mmentor

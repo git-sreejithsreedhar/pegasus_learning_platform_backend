@@ -12,7 +12,7 @@ import type {
   IRequestMentorCorrectionUsecase,
   IRejectMentorUsecase,
   IApproveMentorUsecase,
-} from 'src/modules/mentor/domain/interface/usecases.interface';
+} from 'src/modules/mentor/application/IUseCase/usecases.interface';
 import {
   FIND_ALL_MENTORS_USECASE,
   GET_MENTOR_DETAILS_USECASE,
