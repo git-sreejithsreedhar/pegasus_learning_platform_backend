@@ -46,7 +46,7 @@ export class LoginUseCase implements ILoginUsecase {
     );
 
     if (!isValid) {
-      throw new InvalidCredentialsError();
+      throw new InvalidCredentialsError(email);
     }
 
     user.lastLogin = new Date();

@@ -28,8 +28,6 @@ import { AuthResolver } from './presentation/auth.resolver';
 import { WINSTON_MODULE_PROVIDER, WinstonModule } from 'nest-winston';
 import { Logger } from 'winston';
 import { winstonConfig } from 'src/core/config/logger.config';
-import { APP_FILTER } from '@nestjs/core';
-import { GqlHttpExceptionFilter } from 'src/core/common/filters/gql-exception.filters';
 import appConfig from 'src/core/config/env.config';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PassportModule } from '@nestjs/passport';
@@ -98,10 +96,6 @@ import { TokenServiceProvider } from './application/providers/token-providers';
     {
       provide: TOKEN_SERVICE,
       useClass: JwtTokenService,
-    },
-    {
-      provide: APP_FILTER,
-      useClass: GqlHttpExceptionFilter,
     },
     {
       provide: PASSWORD_SERVICE,

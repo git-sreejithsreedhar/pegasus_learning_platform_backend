@@ -1,12 +1,14 @@
 import {
   Body,
   Controller,
-  HttpException,
   Inject,
   Post,
   Res,
+  BadRequestException,
+  Logger,
 } from '@nestjs/common';
 import express from 'express';
+import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { sendMailDto } from '../inputs/send-mail.dto';
 import {
   IForgotPasswordUsecaseToken,
@@ -18,8 +20,15 @@ import {
 } from '../../application/tokens';
 import * as authUsecaseInterface from '../../application/interfaces/auth-usecase.interface';
 import { LoginInput } from '../inputs/login-input.dto';
-// import { UserModel } from 'src/modules/users/presentation/models/user.type';
-import { User } from 'src/modules/users/domain/entities/users.entity';
+import {
+  TokenInvalidException,
+  EmailServiceFailedException,
+  OperationFailedException,
+} from 'src/core/common/errors/app-exceptions';
+import { ResendEmailDto } from '../inputs/resend-email.dto';
+import { ForgotPasswordDto } from '../inputs/forgot-password.dto';
+import { UpdatePasswordDto } from '../inputs/update-password.dto';
+import { VerifyEmailDto } from '../inputs/verify-email.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -36,14 +45,21 @@ export class AuthController {
     private readonly forgotPasswordUsecase: authUsecaseInterface.IForgotPasswordUsecase,
     @Inject(IUpdatePasswordUsecaseToken)
     private readonly updatePasswordUsecase: authUsecaseInterface.IUpdatePasswordUsecase,
+    @Inject(WINSTON_MODULE_NEST_PROVIDER)
+    private readonly logger: Logger,
   ) {}
 
-  // user login
+  /**
+   * User login endpoint
+   * Validates credentials and returns access token + refresh token cookie
+   */
   @Post('login')
   async login(
     @Body() credentials: LoginInput,
     @Res({ passthrough: true }) res: express.Response,
-  ): Promise<{ user: User; accessToken: string }> {
+  ) {
+    this.logger.log(`Login attempt for email: ${credentials.email}`);
+
     const { user, accessToken, refreshToken } = await this.loginUsecase.execute(
       credentials.email,
       credentials.password,
@@ -56,71 +72,167 @@ export class AuthController {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    return {
-      user,
-      accessToken,
-      // refreshToken,
-    };
+    this.logger.log(`Login successful for user: ${user._id}`);
+
+    return { user, accessToken };
   }
 
-  // send email verification mail
+  /**
+   * Send verification email to user
+   */
   @Post('send-verification-mail')
   async sendVerificationEmail(
     @Body() body: sendMailDto,
   ): Promise<{ message: string }> {
-    await this.sendVerificationMailUsecase.execute({
-      _id: body.userId,
-      email: body.email,
-    });
-    return { message: 'Verification email has been sent' };
+    try {
+      this.logger.log(`Sending verification email to: ${body.email}`);
+
+      await this.sendVerificationMailUsecase.execute({
+        _id: body.userId,
+        email: body.email,
+      });
+
+      this.logger.log(`Verification email sent to: ${body.email}`);
+
+      return { message: 'Verification email has been sent' };
+    } catch (error) {
+      this.logger.error(
+        `Failed to send verification email to ${body.email}`,
+        error instanceof Error ? error.stack : undefined,
+      );
+      throw new EmailServiceFailedException(
+        'Failed to send verification email',
+      );
+    }
   }
 
-  // verify email
+  /**
+   * Verify user email with token
+   */
   @Post('verify-email')
-  async verifyEmail(@Body('token') token: string) {
+  async verifyEmail(@Body() verifyEmailDto: VerifyEmailDto) {
     try {
-      if (!token) {
-        throw new HttpException('Token is required', 400);
-      }
+      this.logger.log('Email verification attempt');
 
-      await this.mailVerificationUsecase.execute(token);
+      await this.mailVerificationUsecase.execute(verifyEmailDto.token);
+
+      this.logger.log('Email verified successfully');
 
       return {
         success: true,
         message: 'Email verified successfully',
       };
     } catch (error) {
-      console.error(error);
-    }
-  }
-  // Resend Mail
+      if (error instanceof Error && error.message.includes('expired')) {
+        this.logger.warn('Email verification token expired');
+        throw new TokenInvalidException('Verification token has expired');
+      }
 
-  @Post('resend-email')
-  async resendMail(@Body('email') email: string) {
-    try {
-      await this.resendEmailUsecase.execute(email);
-    } catch (error) {
-      console.error(error);
-      throw new HttpException('Failed to resend email', 500);
+      this.logger.error(
+        'Email verification failed',
+        error instanceof Error ? error.stack : undefined,
+      );
+      throw error;
     }
   }
-  // forgot password
-  @Post('forgot-password')
-  async forgotPassword(@Body('email') email: string) {
-    return this.forgotPasswordUsecase.execute(email);
-    return { message: 'Password updated successfully' };
-  }
-  // update password
-  @Post('update-password')
-  async updatePassword(
-    @Body('newPassword') newPassword: string,
-    @Body('token') token: string,
-  ) {
+
+  /**
+   * Resend verification email
+   */
+  @Post('resend-email')
+  async resendMail(@Body() resendEmailDto: ResendEmailDto) {
     try {
-      await this.updatePasswordUsecase.execute(newPassword, token);
+      this.logger.log(
+        `Resending verification email to: ${resendEmailDto.email}`,
+      );
+
+      await this.resendEmailUsecase.execute(resendEmailDto.email);
+
+      this.logger.log(`Verification email resent to: ${resendEmailDto.email}`);
+
+      return { message: 'Verification email has been resent' };
     } catch (error) {
-      console.error(error);
-      throw new HttpException('Failed to update password', 500);
+      this.logger.error(
+        `Failed to resend email to ${resendEmailDto.email}`,
+        error instanceof Error ? error.stack : undefined,
+      );
+      throw new EmailServiceFailedException(
+        'Failed to resend verification email',
+      );
+    }
+  }
+
+  /**
+   * Initiate password reset process
+   */
+  @Post('forgot-password')
+  async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
+    try {
+      this.logger.log(
+        `Password reset requested for: ${forgotPasswordDto.email}`,
+      );
+
+      await this.forgotPasswordUsecase.execute(forgotPasswordDto.email);
+
+      this.logger.log(
+        `Password reset email sent to: ${forgotPasswordDto.email}`,
+      );
+
+      // Return generic message for security (don't confirm if email exists)
+      return {
+        message:
+          'If this email exists in our system, you will receive a password reset link',
+      };
+    } catch (error) {
+      this.logger.error(
+        `Password reset failed for ${forgotPasswordDto.email}`,
+        error instanceof Error ? error.stack : undefined,
+      );
+
+      // Return generic message even on error (security best practice)
+      return {
+        message:
+          'If this email exists in our system, you will receive a password reset link',
+      };
+    }
+  }
+
+  /**
+   * Update password with reset token
+   */
+  @Post('update-password')
+  async updatePassword(@Body() updatePasswordDto: UpdatePasswordDto) {
+    try {
+      this.logger.log('Password update attempt');
+
+      await this.updatePasswordUsecase.execute(
+        updatePasswordDto.newPassword,
+        updatePasswordDto.token,
+      );
+
+      this.logger.log('Password updated successfully');
+
+      return { message: 'Password updated successfully' };
+    } catch (error) {
+      this.logger.error(
+        'Password update failed',
+        error instanceof Error ? error.stack : undefined,
+      );
+
+      if (
+        error instanceof Error &&
+        error.message.toLowerCase().includes('token')
+      ) {
+        throw new TokenInvalidException(
+          'Password reset token is invalid or has expired',
+        );
+      }
+
+      if (error instanceof Error && error.message.includes('password')) {
+        throw error;
+      }
+
+      throw new OperationFailedException('Failed to update password');
     }
   }
 }
