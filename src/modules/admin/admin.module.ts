@@ -10,9 +10,10 @@ import { GetAllMentorsUsecase } from './application/usecases/get-all-mentors.use
 import { GetMentorDetailsUsecase } from './application/usecases/get-mentor-details.usecase';
 import { RolesGuard } from 'src/core/common/guards/roles.guard';
 import { AuthModule } from '../auth/auth.module';
+import { FileStorageModule } from 'src/core/common/upload/file-storage.module';
 
 @Module({
-  imports: [AuthModule, UsersModule, MentorModule],
+  imports: [AuthModule, UsersModule, MentorModule, FileStorageModule],
 
   controllers: [AdminController],
 

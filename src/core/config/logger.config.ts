@@ -2,7 +2,15 @@ import * as winston from 'winston';
 import { utilities as nestWinstonModuleUtilities } from 'nest-winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
 
-export const winstonConfig = {
+export const winstonConfig: winston.LoggerOptions = {
+  level: 'info', // default winston level
+
+  format: winston.format.combine(
+    winston.format.errors({ stack: true }),
+    winston.format.timestamp(),
+    winston.format.json(),
+  ),
+
   transports: [
     new winston.transports.Console({
       format: winston.format.combine(
@@ -14,25 +22,15 @@ export const winstonConfig = {
         }),
       ),
     }),
-    // new winston.transports.File({
-    //   filename: 'logs/error.log',
-    //   level: 'error',
-    // }),
-    // new winston.transports.File({
-    //   filename: 'logs/combined.log',
-    // }),
 
     new winston.transports.File({
       filename: 'logs/app.log',
       level: 'info',
-      format: winston.format.combine(
-        winston.format.timestamp(),
-        winston.format.json(),
-      ),
     }),
 
     new DailyRotateFile({
-      filename: 'logs/%DATE%-combined.log',
+      filename: 'logs/%DATE%-error.log',
+      level: 'error',
       datePattern: 'YYYY-MM-DD',
       zippedArchive: true,
       maxSize: '20m',
