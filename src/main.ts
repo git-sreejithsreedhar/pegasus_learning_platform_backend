@@ -3,28 +3,35 @@ import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
 import helmet from 'helmet';
 import compression from 'compression';
-import { ValidationPipe } from '@nestjs/common';
-import { WINSTON_MODULE_PROVIDER, WinstonModule } from 'nest-winston';
-import { Logger as WinstonLogger } from 'winston';
+import { ValidationPipe, Logger } from '@nestjs/common';
+import { WinstonModule } from 'nest-winston';
 import { HttpExceptionFilter } from './core/common/filters/http-exception.fillters';
-import { GqlHttpExceptionFilter } from './core/common/filters/gql-exception.filters';
-import { GlobalLoggingInterceptor } from './core/common/intercetors/global-logging.interceptor';
 import { winstonConfig } from './core/config/logger.config';
 import cookieParser from 'cookie-parser';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { join } from 'path';
+import { ConfigValidationService } from './core/config/config-validation.service';
+import { AppGqlExceptionFilter } from './core/common/filters/gql-exception.filters';
+import { DomainExceptionFilter } from './core/common/filters/domain-exception.filter';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, {
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     logger: WinstonModule.createLogger(winstonConfig),
   });
 
   const configService = app.get(ConfigService);
+  const validator = app.get(ConfigValidationService);
+
+  validator.validateAppConfig();
+  validator.getCloudinaryConfig();
 
   app.enableCors({
     origin: 'http://localhost:4200',
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    optionsSuccessStatus: 200,
+  });
+
+  app.useStaticAssets(join(process.cwd(), 'uploads'), {
+    prefix: '/uploads',
   });
 
   app.setGlobalPrefix('api/v1');
@@ -39,27 +46,25 @@ async function bootstrap() {
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
-      forbidNonWhitelisted: true,
       transform: true,
+      transformOptions: {
+        enableImplicitConversion: true,
+      },
     }),
   );
 
-  // Get logger
-  const logger = app.get<WinstonLogger>(WINSTON_MODULE_PROVIDER);
-
-  // Interceptor
-  // app.useGlobalInterceptors(new GlobalLoggingInterceptor(logger));
-
-  // Filters — ONLY ONCE
+  // Filters (Nest logger is already wired)
   app.useGlobalFilters(
-    new HttpExceptionFilter(logger),
-    // new GqlHttpExceptionFilter(logger),
+    app.get(HttpExceptionFilter),
+    app.get(AppGqlExceptionFilter),
+    app.get(DomainExceptionFilter),
   );
 
   const port = configService.get<number>('PORT') || 3000;
   await app.listen(port);
 
-  logger.info(`Server running on port ${port}`);
+  const logger = new Logger('Bootstrap');
+  logger.log(`Server running on port ${port}`);
 }
 
 void bootstrap();

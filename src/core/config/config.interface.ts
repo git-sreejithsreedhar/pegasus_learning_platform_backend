@@ -39,6 +39,13 @@ export interface AppConfig {
   frontend: {
     frontendUrl: string;
   };
+
+  cloudinary: {
+    cloudName?: string;
+    apiKey?: string;
+    apiSecret?: string;
+    folder?: string;
+  };
 }
 
 export interface TokenConfig {
@@ -51,43 +58,9 @@ export interface TokenConfig {
   issuer: string;
 }
 
-// export interface TokenObject{}
-
-// export interface TokenConfig {
-//   accessTokenSecret: string;
-//   refreshTokenSecret: string;
-//   accessTokenExpiry: string;
-//   refreshTokenExpiry: string;
-//   issuer: string;
-// }
-
-// export interface AppConfig {
-//   nodeEnv: string;
-//   port: number;
-//   database: {
-//     uri: string;
-//     dbName: string;
-//   };
-//   accessToken: {
-//     secret: string;
-//     expiresIn: string;
-//   };
-//   refreshToken: {
-//     secret: string;
-//     expiresIn: string;
-//   };
-//   googleId: {
-//     id: string;
-//   };
-//   mail: {
-//     user: string;
-//     password: string;
-//     port: string;
-//     host: string;
-//     from: string;
-//     appName: string;
-//   };
-//   frontend: {
-//     frontendUrl: string;
-//   };
-// }
+export interface CloudinaryConfig {
+  cloudName: string;
+  apiKey: string;
+  apiSecret: string;
+  folder?: string;
+}

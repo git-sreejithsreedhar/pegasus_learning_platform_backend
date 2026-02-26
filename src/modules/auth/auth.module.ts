@@ -28,8 +28,6 @@ import { AuthResolver } from './presentation/auth.resolver';
 import { WINSTON_MODULE_PROVIDER, WinstonModule } from 'nest-winston';
 import { Logger } from 'winston';
 import { winstonConfig } from 'src/core/config/logger.config';
-import { APP_FILTER } from '@nestjs/core';
-import { GqlHttpExceptionFilter } from 'src/core/common/filters/gql-exception.filters';
 import appConfig from 'src/core/config/env.config';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PassportModule } from '@nestjs/passport';
@@ -46,6 +44,8 @@ import { VERIFICATION_TRIGGER } from '../users/application/interfaces/verificati
 import { ResendEmailUsecase } from './application/usecases/resend-email.usecase';
 import { ForgotPasswordUsecase } from './application/usecases/forgot-password.usecase';
 import { UpdatePasswordUsecase } from './application/usecases/update-password.usecase';
+import { JwtAuthGuard } from 'src/core/common/guards/jwt-Auth.guard';
+import { TokenServiceProvider } from './application/providers/token-providers';
 
 @Module({
   controllers: [AuthController],
@@ -63,6 +63,7 @@ import { UpdatePasswordUsecase } from './application/usecases/update-password.us
   ],
 
   providers: [
+    TokenServiceProvider,
     JwtStrategy,
     ConfigValidationService,
     // repository for password service
@@ -71,6 +72,10 @@ import { UpdatePasswordUsecase } from './application/usecases/update-password.us
     //   provide: VERIFICATION_TRIGGER,
     //   useClass: SendVerificationMailUseCase,
     // },
+    {
+      provide: JwtAuthGuard,
+      useClass: JwtAuthGuard,
+    },
     {
       provide: VERIFICATION_TRIGGER,
       useExisting: ISendVerificationMailUsecaseToken,
@@ -93,18 +98,9 @@ import { UpdatePasswordUsecase } from './application/usecases/update-password.us
       useClass: JwtTokenService,
     },
     {
-      provide: APP_FILTER,
-      useClass: GqlHttpExceptionFilter,
-    },
-    {
       provide: PASSWORD_SERVICE,
       useClass: BcryptPasswordHasher,
     },
-    // {
-    //   provide: ISendVerificationMailUsecaseToken,
-    //   useClass: SendVerificationMailUseCase,
-    // },
-    // send-verification-mail
     {
       provide: ISendVerificationMailUsecaseToken,
       useFactory: (
@@ -288,7 +284,10 @@ import { UpdatePasswordUsecase } from './application/usecases/update-password.us
     TOKEN_SERVICE,
     AUTH_USECASES,
     PassportModule,
+    JwtStrategy,
     VERIFICATION_TRIGGER,
+    JwtAuthGuard,
+    TokenServiceProvider,
   ],
 })
 export class AuthModule {}

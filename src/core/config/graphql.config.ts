@@ -18,5 +18,6 @@ export default registerAs(
 
     cache: 'bounded',
     csrfPrevention: process.env.NODE_ENV === 'production',
+    formatError: (error) => error,
   }),
 );

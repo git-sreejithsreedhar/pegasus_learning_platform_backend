@@ -38,3 +38,4 @@ export class Auth0JwtStrategy extends PassportStrategy(Strategy, 'auth0-jwt') {
   //     });
   //   }
 }
+

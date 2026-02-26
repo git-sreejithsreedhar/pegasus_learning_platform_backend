@@ -1,44 +1,35 @@
-import {
-  Injectable,
-  CanActivate,
-  ExecutionContext,
-  ForbiddenException,
-} from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import { ROLES_KEY } from '../decorators/roles.decorator';
+import { UserRole } from '../enums/user-role.enum';
 import type { Request } from 'express';
 
-export type Role = 'admin' | 'user' | 'editor';
+interface AuthenticatedUser {
+  id: string;
+  roles: UserRole[];
+}
 
 @Injectable()
 export class RolesGuard implements CanActivate {
   constructor(private readonly reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
-    const requiredRoles =
-      this.reflector.get<Role[]>('roles', context.getHandler()) ?? [];
+    const requiredRoles = this.reflector.getAllAndOverride<UserRole[]>(
+      ROLES_KEY,
+      [context.getHandler(), context.getClass()],
+    );
 
-    // Ensure requiredRoles is an array
-    if (!Array.isArray(requiredRoles)) {
-      throw new ForbiddenException('Invalid role metadata');
+    if (!requiredRoles || requiredRoles.length === 0) {
+      return true;
     }
 
     const request = context.switchToHttp().getRequest<Request>();
-
-    // Type your user properly (NOT any)
-    const user = request.user as { roles: Role[] } | undefined;
+    const user = request.user as AuthenticatedUser | undefined;
 
     if (!user || !Array.isArray(user.roles)) {
-      throw new ForbiddenException('User roles missing');
+      return false;
     }
 
-    const hasRole = requiredRoles.some((role) => user.roles.includes(role));
-
-    if (!hasRole) {
-      throw new ForbiddenException('Access denied');
-    }
-
-    return true;
+    return requiredRoles.some((role) => user.roles.includes(role));
   }
 }
-
-// @Roles(UserRole.Admin)

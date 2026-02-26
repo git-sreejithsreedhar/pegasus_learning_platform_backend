@@ -23,6 +23,10 @@ export class CreateUserDto {
   @IsString()
   name: string;
 
+  @IsOptional()
+  @IsString()
+  avatar?: string;
+
   @IsArray()
   @IsEnum(UserRole, { each: true })
   @IsOptional()
