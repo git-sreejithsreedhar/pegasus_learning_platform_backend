@@ -1,21 +1,35 @@
-// upload/upload.service.ts
-import { Injectable } from '@nestjs/common';
-import cloudinary from './clodinary/cloudinary.config';
+import { Inject, Injectable } from '@nestjs/common';
+import { FILE_STORAGE } from './file-storage.token';
+import type {
+  FileResourceType,
+  IFileStorageService,
+} from './file-storage.interface';
 
 @Injectable()
 export class UploadService {
-  formatResponse(file: Express.Multer.File) {
-    return {
-      url: file.path,
-      publicId: file.filename,
-      mimeType: file.mimetype,
-      size: file.size,
-    };
+  constructor(
+    @Inject(FILE_STORAGE)
+    private readonly storage: IFileStorageService,
+  ) {}
+
+  async upload(
+    file: Express.Multer.File,
+    folder: string,
+    resourceType: FileResourceType,
+  ) {
+    const key = `${Date.now()}-${file.originalname.split('.')[0]}`;
+
+    return this.storage.uploadBuffer(key, file.buffer, {
+      contentType: file.mimetype,
+      resourceType,
+      folder,
+    });
   }
 
-  async delete(publicId: string) {
-    return cloudinary.uploader.destroy(publicId, {
-      resource_type: 'auto',
-    });
+  // async delete(publicId: string) {
+  //   return this.storage.generateSignedUrl(publicId);
+  // }
+  async delete(publicId: string, resourceType: FileResourceType) {
+    await this.storage.delete(publicId, resourceType);
   }
 }

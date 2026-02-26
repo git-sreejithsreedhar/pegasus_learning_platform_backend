@@ -1,55 +1,36 @@
-// upload/upload.controller.ts
 import {
   Controller,
   Post,
   UploadedFile,
   UseInterceptors,
-  BadRequestException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { createCloudinaryStorage } from './clodinary/cloudinary.storage';
 import { UploadService } from './upload.service';
+import { CloudMulterOptions } from './multer.memory';
+import { validateImage, validatePdf, validateVideo } from './validation-helper';
 
 @Controller('upload')
 export class UploadController {
   constructor(private readonly uploadService: UploadService) {}
 
   @Post('image')
-  @UseInterceptors(
-    FileInterceptor('file', {
-      storage: createCloudinaryStorage('images'),
-      fileFilter: (req, file, cb) => {
-        if (!file.mimetype.startsWith('image/')) {
-          return cb(new BadRequestException('Only images allowed'), false);
-        }
-        cb(null, true);
-      },
-      limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
-    }),
-  )
-  uploadImage(@UploadedFile() file: Express.Multer.File) {
-    return this.uploadService.formatResponse(file);
+  @UseInterceptors(FileInterceptor('file', CloudMulterOptions))
+  async uploadImage(@UploadedFile() file: Express.Multer.File) {
+    validateImage(file);
+    return this.uploadService.upload(file, 'images', 'image');
   }
 
   @Post('video')
-  @UseInterceptors(
-    FileInterceptor('file', {
-      storage: createCloudinaryStorage('videos'),
-      limits: { fileSize: 100 * 1024 * 1024 }, // 100MB
-    }),
-  )
-  uploadVideo(@UploadedFile() file: Express.Multer.File) {
-    return this.uploadService.formatResponse(file);
+  @UseInterceptors(FileInterceptor('file', CloudMulterOptions))
+  async uploadVideo(@UploadedFile() file: Express.Multer.File) {
+    validateVideo(file);
+    return this.uploadService.upload(file, 'videos', 'video');
   }
 
   @Post('file')
-  @UseInterceptors(
-    FileInterceptor('file', {
-      storage: createCloudinaryStorage('files'),
-      limits: { fileSize: 20 * 1024 * 1024 }, // 20MB
-    }),
-  )
-  uploadFile(@UploadedFile() file: Express.Multer.File) {
-    return this.uploadService.formatResponse(file);
+  @UseInterceptors(FileInterceptor('file', CloudMulterOptions))
+  async uploadFile(@UploadedFile() file: Express.Multer.File) {
+    validatePdf(file);
+    return this.uploadService.upload(file, 'files', 'raw');
   }
 }

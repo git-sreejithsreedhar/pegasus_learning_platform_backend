@@ -1,16 +1,35 @@
+export type FileResourceType = 'image' | 'video' | 'raw';
+
+// export interface UploadResult {
+//   key: string;
+//   url: string;
+//   publicId: string;
+// }
 export interface UploadResult {
   key: string;
-  url?: string;
+  url: string;
+  publicId: string;
+  format: string;
 }
 
 export interface IFileStorageService {
   uploadBuffer(
     key: string,
-    file: Buffer,
-    options?: { contentType?: string },
+    buffer: Buffer,
+    options?: {
+      contentType?: string;
+      resourceType?: FileResourceType;
+      folder?: string;
+    },
   ): Promise<UploadResult>;
 
-  getDownloadUrl(key: string): Promise<string>;
+  generatePublicUrl(publicId: string, resourceType?: FileResourceType): string;
 
-  deleteFile(key: string): Promise<void>;
+  generateSignedUrl(
+    publicId: string,
+    resourceType?: FileResourceType,
+    expiresInSeconds?: number,
+  ): string;
+
+  delete(publicId: string, resourceType?: FileResourceType): Promise<void>;
 }
