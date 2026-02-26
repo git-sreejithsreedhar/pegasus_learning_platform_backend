@@ -18,6 +18,7 @@ export class CreateMentorUsecase implements ICreateMentorUsecase {
     userId: string,
     mentorData: MentorRegisterDto,
   ): Promise<CreateMentorResponse> {
+    console.log('Crete Mntor usecase Hit');
     const user = await this.userRepo.findById(userId);
     if (!user) {
       throw new HttpException('User not found', 404);
@@ -73,7 +74,41 @@ export class CreateMentorUsecase implements ICreateMentorUsecase {
           avatar: mentorData.profile?.avatar,
         },
         mentorData.socialLinks ?? {},
-        mentorData.documents ?? {},
+        // mentorData.documents ?? {},
+        {
+          identificationDoc: mentorData.documents?.identificationDoc
+            ? {
+                ...mentorData.documents.identificationDoc,
+                uploadedAt:
+                  mentorData.documents.identificationDoc.uploadedAt ??
+                  new Date(),
+              }
+            : undefined,
+
+          educationalDoc: mentorData.documents?.educationalDoc
+            ? {
+                ...mentorData.documents.educationalDoc,
+                uploadedAt:
+                  mentorData.documents.educationalDoc.uploadedAt ?? new Date(),
+              }
+            : undefined,
+
+          professionalDoc: mentorData.documents?.professionalDoc
+            ? {
+                ...mentorData.documents.professionalDoc,
+                uploadedAt:
+                  mentorData.documents.professionalDoc.uploadedAt ?? new Date(),
+              }
+            : undefined,
+
+          additionalDoc: mentorData.documents?.additionalDoc
+            ? {
+                ...mentorData.documents.additionalDoc,
+                uploadedAt:
+                  mentorData.documents.additionalDoc.uploadedAt ?? new Date(),
+              }
+            : undefined,
+        },
         0,
         0,
         [],

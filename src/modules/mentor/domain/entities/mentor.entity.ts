@@ -6,6 +6,8 @@ export type MentorStatus =
   | 'correction_required'
   | 'pending';
 
+export type FileResourceType = 'image' | 'video' | 'raw';
+
 export interface MentorDocuments {
   identificationDoc?: string;
   educationalDoc?: string;
@@ -28,8 +30,15 @@ export interface AdminFeedback {
 
 export interface FeedbackHistory {
   mentorMessage: string;
-  action: 'approved' | 'rejected' | 'correction_required' | 'pending';
+  action: MentorStatus;
   date: Date;
+}
+
+export interface SignedDocument {
+  publicId: string;
+  resourceType: FileResourceType;
+  originalName?: string;
+  uploadedAt: Date;
 }
 
 export class Mentor {
@@ -50,10 +59,10 @@ export class Mentor {
       website?: string;
     },
     public readonly documents: {
-      identificationDoc?: string;
-      educationalDoc?: string;
-      professionalDoc?: string;
-      additionalDoc?: string;
+      identificationDoc?: SignedDocument;
+      educationalDoc?: SignedDocument;
+      professionalDoc?: SignedDocument;
+      additionalDoc?: SignedDocument;
     },
     public totalStudents: number,
     public totalCourses: number,

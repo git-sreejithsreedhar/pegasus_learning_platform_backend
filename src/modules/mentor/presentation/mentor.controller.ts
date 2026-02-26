@@ -28,12 +28,12 @@ import { JwtAuthGuard } from 'src/core/common/guards/jwt-Auth.guard';
 import { FILE_STORAGE } from 'src/core/common/upload/file-storage.token';
 import type { IFileStorageService } from 'src/core/common/upload/file-storage.interface';
 
-import { CloudMulterOptions } from 'src/core/common/upload/multer/multer-cloudinary.options';
 import {
   validateImage,
   validatePdf,
 } from 'src/core/common/upload/validation-helper';
 import { safeJsonParse } from 'src/core/utils/json.util';
+import { CloudMulterOptions } from 'src/core/common/upload/multer.memory';
 
 @Controller('mentor')
 export class MentorController {
@@ -53,13 +53,14 @@ export class MentorController {
     @Body() body: any,
     @UploadedFiles() files: Express.Multer.File[],
   ) {
-    console.log('REGISTER HIT');
-
     // ---------------- Auth ----------------
     if (!req.user) {
       throw new UnauthorizedException('User not authenticated');
     }
     const userId = req.user.userId;
+
+    // console.log('AUTHORIZED, USERID :', userId);
+    // console.log('BODY :', body);
 
     // ---------------- Parse body ----------------
     const parsedBody: Partial<MentorRegisterDto> = {
@@ -86,64 +87,109 @@ export class MentorController {
       throw new BadRequestException(errors);
     }
 
-    const safeFiles = Array.isArray(files) ? files: [];
+    const safeFiles = Array.isArray(files) ? files : [];
 
-    console.log(safeFiles);
+    try {
+      // ---------------- Avatar upload ----------------
+      const avatarFile = safeFiles.find((f) => f.fieldname === 'avatar');
+      if (avatarFile) {
+        validateImage(avatarFile);
 
-    // ---------------- Avatar upload ----------------
-    const avatarFile = files.find((f) => f.fieldname === 'avatar');
-    if (avatarFile) {
-      validateImage(avatarFile);
+        const upload = await this.storage.uploadBuffer(
+          `mentors/${userId}/avatar`,
+          avatarFile.buffer,
+          { contentType: avatarFile.mimetype, resourceType: 'image' },
+        );
 
-      const upload = await this.storage.uploadBuffer(
-        `mentors/${userId}/avatar`,
-        avatarFile.buffer,
-        { contentType: avatarFile.mimetype },
-      );
+        dto.profile.avatar = upload.publicId;
+      }
 
-      dto.profile.avatar = upload.url;
-    }
+      // ---------------- Document uploads ----------------
+      // const getPdfUrl = async (
+      //   field:
+      //     | 'identificationDoc'
+      //     | 'educationalDoc'
+      //     | 'professionalDoc'
+      //     | 'additionalDoc',
+      // ): Promise<string | undefined> => {
+      //   const file = safeFiles.find((f) => f.fieldname === field);
+      //   if (!file) return undefined;
 
-    console.log('ABOUT TO UPLOAD FILE');
+      //   validatePdf(file);
 
-    // ---------------- Document uploads ----------------
-    const getPdfUrl = async (
-      field:
-        | 'identificationDoc'
-        | 'educationalDoc'
-        | 'professionalDoc'
-        | 'additionalDoc',
-    ): Promise<string | undefined> => {
-      const file = files.find((f) => f.fieldname === field);
-      if (!file) return undefined;
+      //   const upload = await this.storage.uploadBuffer(
+      //     `mentors/${userId}/documents/${file.originalname}`,
+      //     file.buffer,
+      //     { contentType: file.mimetype, resourceType: 'raw' },
+      //   );
 
-      validatePdf(file);
+      //   return {
+      //     publicId: upload.publicId,
+      //     resourceType: 'raw',
+      //     originalName: file.originalname,
+      //     updatedAt: new Date(),
+      //   };
+      // };
 
-      const upload = await this.storage.uploadBuffer(
-        `mentors/${userId}/documents/${file.originalname}`,
-        file.buffer,
-        { contentType: file.mimetype },
-      );
+      const getPdfData = async (
+        field:
+          | 'identificationDoc'
+          | 'educationalDoc'
+          | 'professionalDoc'
+          | 'additionalDoc',
+      ) => {
+        const file = safeFiles.find((f) => f.fieldname === field);
+        if (!file) return undefined;
 
-      return upload.url;
-    };
+        validatePdf(file);
 
-    dto.documents = {
-      identificationDoc: await getPdfUrl('identificationDoc'),
-      educationalDoc: await getPdfUrl('educationalDoc'),
-      professionalDoc: await getPdfUrl('professionalDoc'),
-      additionalDoc: await getPdfUrl('additionalDoc'),
-    };
+        const upload = await this.storage.uploadBuffer(
+          `mentors/${userId}/documents/${file.originalname}`,
+          file.buffer,
+          {
+            contentType: file.mimetype,
+            resourceType: 'raw', // ✅ IMPORTANT
+          },
+        );
 
-    console.log('UPLOAD DONE');
+        return {
+          publicId: upload.publicId,
+          resourceType: 'raw' as const,
+          originalName: file.originalname,
+          uploadedAt: new Date(),
+        };
+      };
 
-    // ---------------- Create mentor ----------------
-    const result = await this.createMentorUsecase.execute(userId, dto);
+      const [
+        identificationDoc,
+        educationalDoc,
+        professionalDoc,
+        additionalDoc,
+      ] = await Promise.all([
+        getPdfData('identificationDoc'),
+        getPdfData('educationalDoc'),
+        getPdfData('professionalDoc'),
+        getPdfData('additionalDoc'),
+      ]);
 
-    if (result.type === 'STATUS') {
+      dto.documents = {
+        identificationDoc,
+        educationalDoc,
+        professionalDoc,
+        additionalDoc,
+      };
+      console.log('Crete Mntor usecase called');
+      // ---------------- Create mentor ----------------
+      const result = await this.createMentorUsecase.execute(userId, dto);
+
+      if (result.type === 'STATUS') {
+        return result;
+      }
+
       return result;
+    } catch (error) {
+      console.error('ERROR: ', error);
+      throw error;
     }
-
-    return result;
   }
 }

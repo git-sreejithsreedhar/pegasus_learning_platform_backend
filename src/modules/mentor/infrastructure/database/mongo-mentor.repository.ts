@@ -69,7 +69,7 @@ export class MentorRepository implements IMentorRepository {
   }
 
   async findById(id: string): Promise<Mentor | null> {
-    const doc = await this.mentorModel.findById(id).exec();
+    const doc = await this.mentorModel.findById(id).lean().exec();
     return doc ? MentorMapper.toDomain(doc) : null;
   }
 
@@ -214,29 +214,4 @@ export class MentorRepository implements IMentorRepository {
       totalPages: Math.ceil(total / limit),
     };
   }
-
-  // private toDomain(doc: MentorDocument): Mentor {
-  //   return new Mentor(
-  //     doc._id.toString(),
-  //     doc.userId,
-  //     doc.primarySkill,
-  //     doc.expertise,
-  //     doc.skillProficiency,
-  //     doc.yearsExperience,
-  //     doc.about,
-  //     doc.profile,
-  //     doc.socialLinks,
-  //     doc.documents,
-  //     doc.totalStudents,
-  //     doc.totalCourses,
-  //     doc.reviews,
-  //     doc.completionRate,
-  //     doc.ratings,
-  //     doc.isApproved,
-  //     doc.communicationPref,
-  //     doc.hourlyRate,
-  //     doc.status,
-  //     doc.feedback,
-  //   );
-  // }
 }

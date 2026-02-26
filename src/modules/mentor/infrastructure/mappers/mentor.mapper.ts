@@ -1,29 +1,98 @@
-import { Mentor } from '../../domain/entities/mentor.entity';
+import { Mentor, MentorStatus } from '../../domain/entities/mentor.entity';
 import { MentorDocument } from '../database/models/mentor.schema';
 
 export class MentorMapper {
-  static toDomain(doc: MentorDocument): Mentor {
+  // static toDomain(doc: MentorDocument): Mentor {
+  static toDomain(doc: any): Mentor {
     return new Mentor(
       doc._id.toString(),
       doc.userId,
       doc.primarySkill,
-      doc.expertise,
-      doc.skillProficiency,
-      doc.yearsExperience,
-      doc.about,
-      doc.profile,
-      doc.socialLinks,
-      doc.documents,
-      doc.totalStudents,
-      doc.totalCourses,
-      doc.reviews,
-      doc.completionRate,
-      doc.ratings,
-      doc.isApproved,
-      doc.communicationPref,
-      doc.hourlyRate,
+      doc.expertise ?? [],
+      doc.skillProficiency ?? 0,
+      doc.yearsExperience ?? 0,
+      doc.about ?? '',
+      {
+        avatar: doc.profile?.avatar ?? '',
+        bio: doc.profile?.bio ?? '',
+      },
+      {
+        linkedin: doc.socialLinks?.linkedin ?? undefined,
+        twitter: doc.socialLinks?.twitter ?? undefined,
+        youtube: doc.socialLinks?.youtube ?? undefined,
+        github: doc.socialLinks?.github ?? undefined,
+        website: doc.socialLinks?.website ?? undefined,
+      },
+      // doc.documents ?? {},
+      {
+        identificationDoc: doc.documents?.identificationDoc
+          ? {
+              ...doc.documents.identificationDoc,
+              originalName:
+                doc.documents.identificationDoc.originalName ?? undefined,
+            }
+          : undefined,
+
+        educationalDoc: doc.documents?.educationalDoc
+          ? {
+              ...doc.documents.educationalDoc,
+              originalName:
+                doc.documents.educationalDoc.originalName ?? undefined,
+            }
+          : undefined,
+
+        professionalDoc: doc.documents?.professionalDoc
+          ? {
+              ...doc.documents.professionalDoc,
+              originalName:
+                doc.documents.professionalDoc.originalName ?? undefined,
+            }
+          : undefined,
+
+        additionalDoc: doc.documents?.additionalDoc
+          ? {
+              ...doc.documents.additionalDoc,
+              originalName:
+                doc.documents.additionalDoc.originalName ?? undefined,
+            }
+          : undefined,
+      },
+
+      doc.totalStudents ?? 0,
+      doc.totalCourses ?? 0,
+      // doc.reviews ?? [],
+      (doc.reviews ?? []).map((review) => ({
+        reviewerId: review.reviewerId,
+        comment: review.comment,
+        rating: review.rating,
+        createdAt: review.createdAt as Date,
+        sessionId: review.sessionId ?? undefined,
+      })),
+      doc.completionRate ?? 0,
+      doc.ratings ?? [],
+      doc.isApproved ?? false,
+      doc.communicationPref ?? undefined,
+      doc.hourlyRate ?? undefined,
       doc.status,
-      doc.feedback,
+      // {
+      //   current: doc.feedback?.current,
+      //   history: doc.feedback?.history ?? [],
+      // },
+      {
+        current: doc.feedback?.current
+          ? {
+              mentorMessage: doc.feedback.current.mentorMessage ?? '',
+              action: doc.feedback.current.action as MentorStatus,
+            }
+          : undefined,
+
+        history:
+          doc.feedback?.history?.map((h) => ({
+            mentorMessage: h.mentorMessage ?? '',
+            action: h.action as MentorStatus,
+            date: h.date as Date,
+          })) ?? [],
+      },
     );
   }
 

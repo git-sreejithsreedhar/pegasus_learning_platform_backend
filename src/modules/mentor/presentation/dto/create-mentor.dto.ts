@@ -6,9 +6,10 @@ import {
   Max,
   IsOptional,
   ValidateNested,
-  // IsUrl,
   IsArray,
   ArrayNotEmpty,
+  IsEnum,
+  IsDate,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -17,71 +18,73 @@ export class ProfileDto {
   @IsString()
   avatar?: string;
 
-  // @IsString()
-  // name: string;
-
   @IsString()
   bio: string;
 }
 
 export class SocialLinksDto {
-  // @IsUrl()
   @IsOptional()
   @IsString()
   linkedin?: string;
 
-  // @IsUrl()
   @IsOptional()
   @IsString()
   twitter?: string;
 
-  // @IsUrl()
   @IsOptional()
   @IsString()
   youtube?: string;
 
-  // @IsUrl()
   @IsOptional()
   @IsString()
   github?: string;
 
-  // @IsUrl()
   @IsOptional()
   @IsString()
   website?: string;
 }
 
-// // Documents dto
+export class SignedDocumentDto {
+  @IsString()
+  publicId: string;
+
+  @IsEnum(['image', 'video', 'raw'])
+  resourceType: 'image' | 'video' | 'raw';
+
+  @IsOptional()
+  @IsString()
+  originalName?: string;
+
+  // @IsOptional()
+  @IsDate()
+  uploadedAt: Date;
+}
+
 export class DocumentsDto {
   @IsOptional()
-  @IsString()
-  identificationDoc?: string;
+  @ValidateNested()
+  @Type(() => SignedDocumentDto)
+  identificationDoc?: SignedDocumentDto;
 
   @IsOptional()
-  @IsString()
-  educationalDoc?: string;
+  @ValidateNested()
+  @Type(() => SignedDocumentDto)
+  educationalDoc?: SignedDocumentDto;
 
   @IsOptional()
-  @IsString()
-  professionalDoc?: string;
+  @ValidateNested()
+  @Type(() => SignedDocumentDto)
+  professionalDoc?: SignedDocumentDto;
 
   @IsOptional()
-  @IsString()
-  additionalDoc?: string;
+  @ValidateNested()
+  @Type(() => SignedDocumentDto)
+  additionalDoc?: SignedDocumentDto;
 }
 
 export class MentorRegisterDto {
-  // @IsString()
-  // name: string;
-
-  // @IsString()
-  // email: string;
-
   @IsString()
   phone: string;
-
-  // @IsString()
-  // bio: string;
 
   @IsString()
   about: string;
@@ -90,10 +93,6 @@ export class MentorRegisterDto {
   @ArrayNotEmpty()
   @IsString({ each: true })
   expertise: string[];
-
-  // @IsArray()
-  // @IsString({ each: true })
-  // customSkills: string[];
 
   @IsString()
   primarySkill: string;
