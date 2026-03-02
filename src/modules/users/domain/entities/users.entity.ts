@@ -8,14 +8,6 @@ export enum UserRole {
   USER = 'USER',
 }
 
-// export class UserProfile {
-//   constructor(
-//     public name: string,
-//     public avatar?: string,
-//     public bio?: string,
-//   ) {}
-// }
-
 export interface toDomain {
   _id: string;
   email: string;
@@ -37,13 +29,10 @@ export interface UserReconstitutionProps {
   password: string;
   name: string;
   avatar?: string;
-  // role: UserRole;
   roles: UserRole[];
-  // profile: UserProfile;
   isActive: boolean;
   isBlocked: boolean;
   isEmailVerified: boolean;
-  // preferences: string[];
   lastLogin?: Date;
   refreshToken?: string;
   createdAt: Date;
@@ -51,18 +40,19 @@ export interface UserReconstitutionProps {
 }
 
 export class User {
+  save() {
+    throw new Error('Method not implemented.');
+  }
   public readonly _id: string;
   public email: string;
-  public password: string;
   public name: string;
   public avatar: string;
-  // public role: UserRole;
   public roles: UserRole[];
-  // public profile: UserProfile;
   public isActive: boolean;
   public isBlocked: boolean;
   public isEmailVerified: boolean;
-  // public preferences: string[];
+  public auth0Id?: string;
+  public password?: string;
   public lastLogin?: Date;
   public refreshToken?: string;
   public readonly createdAt: Date;
@@ -71,16 +61,14 @@ export class User {
   private constructor(
     _id: string,
     email: string,
-    password: string,
     name: string,
     avatar: string,
-    // role: UserRole,
     roles: UserRole[],
-    // profile: UserProfile,
     isActive: boolean,
     isBlocked = false,
     isEmailVerified = false,
-    // preferences: string[] = [],
+    auth0Id?: string,
+    password?: string,
     lastLogin?: Date,
     refreshToken?: string,
     createdAt = new Date(),
@@ -88,15 +76,14 @@ export class User {
   ) {
     this._id = _id;
     this.email = email;
-    this.password = password;
     this.name = name;
-    // this.role = role;
+    this.avatar = avatar;
     this.roles = roles;
-    // this.profile = profile;
     this.isActive = isActive;
     this.isBlocked = isBlocked;
     this.isEmailVerified = isEmailVerified;
-    // this.preferences = preferences;
+    this.auth0Id = auth0Id;
+    this.password = password;
     this.lastLogin = lastLogin;
     this.refreshToken = refreshToken;
     this.createdAt = createdAt;
@@ -108,34 +95,56 @@ export class User {
     return new User(
       new Types.ObjectId().toString(),
       dto.email,
-      dto.password,
       dto.name,
       dto.avatar ?? '',
       dto.roles ?? [UserRole.STUDENT],
-      // dto.profile,
-      true,
-      false,
-      false,
-      undefined,
-      undefined,
+      true, // isActive
+      false, // isBlocked
+      false, // isEmailVerified
+      undefined, // auth0Id
+      dto.password, // password
+      undefined, // lastLogin
+      undefined, // refreshToken
       now,
       now,
     );
   }
 
-  // rebulding from database
+  static createSocial(data: {
+    email: string;
+    name: string;
+    avatar: string;
+    auth0Id: string;
+  }): User {
+    const now = new Date();
+    return new User(
+      new Types.ObjectId().toString(),
+      data.email,
+      data.name,
+      data.avatar,
+      [UserRole.STUDENT],
+      true, // isActive
+      false, // isBlocked
+      true, // isEmailVerified
+      data.auth0Id, // auth0Id
+      undefined, // password (social users have no password)
+      undefined, // lastLogin
+      undefined, // refreshToken
+      now,
+      now,
+    );
+  }
+
   static reconstitute(props: {
     _id: string;
     email: string;
-    password: string;
+    password?: string; // optional to support social users
     name: string;
     avatar: string;
     roles: UserRole[];
-    // profile: UserProfile;
     isActive: boolean;
     isBlocked: boolean;
     isEmailVerified: boolean;
-    // preferences: string[];
     lastLogin?: Date;
     refreshToken?: string;
     createdAt: Date;
@@ -144,32 +153,20 @@ export class User {
     return new User(
       props._id,
       props.email,
-      props.password,
       props.name,
       props.avatar,
       props.roles,
-      // props.profile,
       props.isActive,
       props.isBlocked,
       props.isEmailVerified,
-      // props.preferences,
+      undefined, // auth0Id (add to props if needed)
+      props.password,
       props.lastLogin,
       props.refreshToken,
       props.createdAt,
       props.updatedAt,
     );
   }
-
-  //Domain Behaviors
-  // updateProfile(profile: Partial<UserProfile>): void {
-  //   this.profile = { ...this.profile, ...profile };
-  //   this.touch();
-  // }
-
-  // updatePreferences(preferences: string[]): void {
-  //   this.preferences = preferences;
-  //   this.touch();
-  // }
 
   activate(): void {
     this.isActive = true;
@@ -217,17 +214,3 @@ export class User {
     this.updatedAt = new Date();
   }
 }
-
-// permissions
-// export const Permissions = {
-//   [UserRole.STUDENT]: [
-//     { resource: 'courses', actions: ['read', 'enroll'] },
-//     { resource: 'profile', actions: ['read', 'update'] },
-//   ],
-//   [UserRole.INSTRUCTOR]: [
-//     { resource: 'courses', actions: ['read', 'create', 'update', 'delete'] },
-//     { resource: 'enrollments', actions: ['read'] },
-//     { resource: 'profile', actions: ['read', 'update'] },
-//   ],
-//   [UserRole.ADMIN]: [{ resource: '*', actions: ['*'] }],
-// };

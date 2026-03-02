@@ -1,19 +1,37 @@
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Document } from 'mongoose';
-import {
-  User,
-  // UserProfile,
-} from 'src/modules/users/domain/entities/users.entity';
+import { User } from 'src/modules/users/domain/entities/users.entity';
 import { IUserRepository } from 'src/modules/users/domain/repositories/users-repository.interface';
 import { UserDocument } from '../models/user.schema';
+import { BaseRepository } from 'src/core/database/mongo-base.repository';
+import { Logger } from 'winston';
+import { Inject } from '@nestjs/common';
+import { Types } from 'mongoose';
+import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 
-export class MongoUserRepository implements IUserRepository {
+export class MongoUserRepository
+  extends BaseRepository
+  implements IUserRepository
+{
+  protected logger: Logger;
+
   constructor(
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
-  ) {}
+    @Inject(WINSTON_MODULE_NEST_PROVIDER) logger: Logger,
+  ) {
+    super();
+    this.logger = logger;
+  }
+
   // find by email
   async findByEmail(email: string): Promise<User | null> {
     const userDoc = await this.userModel.findOne({ email }).exec();
+    return userDoc ? this.toDomain(userDoc) : null;
+  }
+
+  // find by Auth0Id
+  async findByAuth0Id(auth0Id: string): Promise<User | null> {
+    const userDoc = await this.userModel.findOne({ auth0Id }).exec();
     return userDoc ? this.toDomain(userDoc) : null;
   }
 
@@ -90,16 +108,10 @@ export class MongoUserRepository implements IUserRepository {
       avatar: userDoc.avatar,
       roles: userDoc.roles,
       isActive: userDoc.isActive,
-      // profile: new UserProfile(
-      //   userDoc.profile.name,
-      //   userDoc.profile.avatar,
-      //   userDoc.profile.bio,
-      // ),
       isBlocked: userDoc.isBlocked,
       isEmailVerified: userDoc.isEmailVerified,
       // preferences: userDoc.preferences,
       lastLogin: userDoc.lastLogin,
-      // refreshToken: userDoc.refreshToken,
       createdAt: userDoc.createdAt,
       updatedAt: userDoc.updatedAt,
     });
@@ -107,23 +119,16 @@ export class MongoUserRepository implements IUserRepository {
 
   private toPersistence(user: User): Partial<UserDocument> {
     return {
-      _id: user._id,
+      _id: new Types.ObjectId(user._id),
       email: user.email,
       password: user.password,
       name: user.name,
       avatar: user.avatar,
       roles: user.roles,
-      // profile: {
-      //   name: user.profile.name,
-      //   avatar: user.profile.avatar,
-      //   bio: user.profile.bio,
-      // },
       isBlocked: user.isBlocked,
       // preferences: user.preferences,
       isEmailVerified: user.isEmailVerified,
       lastLogin: user.lastLogin,
-      // createdAt: user.createdAt,
-      // updatedAt: user.updatedAt,
     };
   }
 }

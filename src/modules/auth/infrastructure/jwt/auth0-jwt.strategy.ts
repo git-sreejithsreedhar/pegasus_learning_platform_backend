@@ -1,13 +1,20 @@
 // src/auth/strategies/auth0-jwt.strategy.ts
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import * as jwksRsa from 'jwks-rsa';
-// import { UsersService } from 'src/users/users.service';
+import { FindOrCreateSocialUser } from 'src/modules/users/application/use-cases/findOrCreateUser.usecase';
+import { FIND_OR_CREATE_SOCIAL_USER } from 'src/modules/users/domain/tokens/tokens';
+import { ConfigService } from '@nestjs/config';
+import { UnauthorizedError } from 'src/core/common/errors/unauthorized-error';
 
 @Injectable()
 export class Auth0JwtStrategy extends PassportStrategy(Strategy, 'auth0-jwt') {
-  constructor(private readonly usersService: UsersService) {
+  constructor(
+    @Inject(FIND_OR_CREATE_SOCIAL_USER)
+    private readonly findOrCreateSocialUser: FindOrCreateSocialUser,
+    private readonly configService: ConfigService,
+  ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       // Auth0 JWKS URL
@@ -23,19 +30,24 @@ export class Auth0JwtStrategy extends PassportStrategy(Strategy, 'auth0-jwt') {
     });
   }
 
-  //   async validate(payload: any) {
-  //     // Only link if email_verified
-  //     if (!payload.email_verified) {
-  //       throw new Error('Email not verified');
-  //     }
+  async validate(payload: {
+    sub: string;
+    email: string;
+    name?: string;
+    nickname?: string;
+    picture?: string;
+  }) {
+    const user = await this.findOrCreateSocialUser.execute({
+      email: payload.email,
+      name: payload.nickname ?? payload.name ?? '',
+      avatar: payload.picture ?? '',
+      auth0Id: payload.sub,
+    });
 
-  //     return this.usersService.findOrCreateSocialUser({
-  //       email: payload.email,
-  //       auth0Id: payload.sub,
-  //       name: payload.name,
-  //       picture: payload.picture,
-  //       provider: payload?.iss?.includes('google') ? 'google' : 'auth0',
-  //     });
-  //   }
+    if (!user) {
+      throw new UnauthorizedError('Unable to authenticate user.');
+    }
+
+    return user;
+  }
 }
-

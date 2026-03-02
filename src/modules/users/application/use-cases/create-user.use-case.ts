@@ -5,6 +5,7 @@ import { PASSWORD_SERVICE, USER_REPOSITORY } from '../../domain/tokens/tokens';
 import { Inject } from '@nestjs/common';
 import type { IPasswordService } from 'src/core/common/security/password-hasher.interface';
 import * as verificationTriggerInterface from '../interfaces/verification-trigger.interface';
+import { ResourceConflictError } from 'src/core/common/errors/resource-conflict.error';
 export class CreateUserUseCase {
   constructor(
     @Inject(USER_REPOSITORY)
@@ -23,7 +24,7 @@ export class CreateUserUseCase {
     );
 
     if (existingUser) {
-      throw new Error('User already exists.');
+      throw new ResourceConflictError('User already exists.');
     }
 
     const hashedPassword = await this.passwordService.hash(
@@ -34,8 +35,6 @@ export class CreateUserUseCase {
       ...createUserDto,
       password: hashedPassword,
     });
-
-    // return await this.userRepository.save(user);
 
     const savedUser = await this.userRepository.save(user);
 

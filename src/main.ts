@@ -13,7 +13,7 @@ import { join } from 'path';
 import { ConfigValidationService } from './core/config/config-validation.service';
 import { AppGqlExceptionFilter } from './core/common/filters/gql-exception.filters';
 import { DomainExceptionFilter } from './core/common/filters/domain-exception.filter';
-
+// pay_SLu6feoPnzJRt8
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     logger: WinstonModule.createLogger(winstonConfig),

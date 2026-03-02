@@ -1,36 +1,37 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import mongoose from 'mongoose';
+import { Document, Types } from 'mongoose';
 import { UserRole } from 'src/modules/users/domain/entities/users.entity';
 
 export type UserDocument = UserPersistence &
-  Document & { createdAt: Date; updatedAt: Date };
+  Document & {
+    _id: Types.ObjectId;
+    createdAt: Date;
+    updatedAt: Date;
+  };
 
 @Schema({
   timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' },
   collection: 'users',
 })
 export class UserPersistence {
-  @Prop({ type: mongoose.Schema.Types.ObjectId, auto: true })
-  _id: string;
+  @Prop({ type: Types.ObjectId, auto: true })
+  _id: Types.ObjectId;
 
-  @Prop({ required: true, unique: true, lowercase: true })
+  @Prop({ required: true, unique: true, lowercase: true, trim: true })
   email: string;
 
-  @Prop({ required: true })
-  password: string;
+  @Prop({ required: false, default: null })
+  password?: string;
 
   @Prop({ required: true })
   name: string;
 
-  @Prop({})
+  @Prop({ default: '' })
   avatar: string;
 
-  // @Prop({
-  //   type: String,
-  //   enum: UserRole,
-  //   default: UserRole.USER,
-  // })
-  // role: UserRole;
+  @Prop({ required: false, default: null })
+  auth0Id?: string;
+
   @Prop({
     type: [String],
     enum: UserRole,
@@ -38,33 +39,24 @@ export class UserPersistence {
   })
   roles: UserRole[];
 
-  // @Prop({
-  //   type: {
-  //     name: { type: String, required: true },
-  //     avatar: String,
-  //     bio: String,
-  //   },
-  //   required: true,
-  // })
-  // profile: {
-  //   name: string;
-  //   avatar?: string;
-  //   bio?: string;
-  // };
   @Prop({ default: true })
   isActive: boolean;
 
   @Prop({ default: false })
   isBlocked: boolean;
 
-  // @Prop({ type: [String], default: [] })
-  // preferences: string[];
-
   @Prop({ default: false })
   isEmailVerified: boolean;
 
   @Prop({ type: Date, default: null })
   lastLogin?: Date;
+
+  @Prop({ type: String, default: null })
+  refreshToken?: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(UserPersistence);
+
+// indexes
+// UserSchema.index({ email: 1 }, { unique: true });
+UserSchema.index({ auth0Id: 1 }, { sparse: true });

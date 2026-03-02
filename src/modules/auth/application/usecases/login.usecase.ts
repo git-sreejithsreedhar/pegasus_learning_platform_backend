@@ -11,6 +11,7 @@ import { Logger } from 'winston';
 import { UserNotFoundError } from 'src/modules/users/domain/errors/user-not-found-error';
 import { UserBlockedError } from 'src/modules/users/domain/errors/user-blocked-error';
 import { InvalidCredentialsError } from '../../domain/errors/invalid-credentials.error';
+import { UnauthorizedError } from 'src/core/common/errors/unauthorized-error';
 
 export class LoginUseCase implements ILoginUsecase {
   constructor(
@@ -38,6 +39,10 @@ export class LoginUseCase implements ILoginUsecase {
 
     if (user.isBlocked) {
       throw new UserBlockedError();
+    }
+
+    if (!user.password) {
+      throw new UnauthorizedError('Invalid credentials');
     }
 
     const isValid = await this.passwordService.compare(
