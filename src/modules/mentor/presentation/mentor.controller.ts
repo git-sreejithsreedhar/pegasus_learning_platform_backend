@@ -35,6 +35,19 @@ import {
 import { safeJsonParse } from 'src/core/utils/json.util';
 import { CloudMulterOptions } from 'src/core/common/upload/multer.memory';
 
+interface MentorRegisterBody {
+  phone?: string;
+  about?: string;
+  primarySkill?: string;
+  communicationPref?: string;
+  skillProficiency?: string | number;
+  yearsExperience?: string | number;
+  hourlyRate?: string | number;
+  expertise?: unknown;
+  profile?: unknown;
+  socialLinks?: unknown;
+}
+
 @Controller('mentor')
 export class MentorController {
   constructor(
@@ -50,7 +63,7 @@ export class MentorController {
   @UseInterceptors(AnyFilesInterceptor(CloudMulterOptions))
   async registerMentor(
     @Req() req: Request,
-    @Body() body: any,
+    @Body() body: MentorRegisterBody,
     @UploadedFiles() files: Express.Multer.File[],
   ) {
     // ---------------- Auth ----------------
@@ -69,9 +82,16 @@ export class MentorController {
       primarySkill: body.primarySkill,
       communicationPref: body.communicationPref,
 
-      skillProficiency: Number(body.skillProficiency),
-      yearsExperience: Number(body.yearsExperience),
-      hourlyRate: Number(body.hourlyRate),
+      skillProficiency:
+        body.skillProficiency === undefined
+          ? undefined
+          : Number(body.skillProficiency),
+      yearsExperience:
+        body.yearsExperience === undefined
+          ? undefined
+          : Number(body.yearsExperience),
+      hourlyRate:
+        body.hourlyRate === undefined ? undefined : Number(body.hourlyRate),
 
       expertise: safeJsonParse<string[]>(body.expertise, []),
       profile: safeJsonParse<ProfileDto>(body.profile, { bio: '' }),

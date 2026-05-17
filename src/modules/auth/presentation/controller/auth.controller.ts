@@ -1,12 +1,4 @@
-import {
-  Body,
-  Controller,
-  Inject,
-  Post,
-  Res,
-  BadRequestException,
-  Logger,
-} from '@nestjs/common';
+import { Body, Controller, Inject, Post, Res, Logger } from '@nestjs/common';
 import express from 'express';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { sendMailDto } from '../inputs/send-mail.dto';

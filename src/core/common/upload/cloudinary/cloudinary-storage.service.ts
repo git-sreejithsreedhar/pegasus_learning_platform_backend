@@ -80,15 +80,11 @@ export class CloudinaryStorageService implements IFileStorageService {
   ) {
     const type = 'upload';
 
-    return this.cloudinary.utils.private_download_url(
-      publicId,
-      undefined as any,
-      {
-        resource_type: resourceType,
-        type,
-        expires_at: Math.floor(Date.now() / 1000) + expiresInSeconds,
-      },
-    );
+    return this.cloudinary.utils.private_download_url(publicId, '', {
+      resource_type: resourceType,
+      type,
+      expires_at: Math.floor(Date.now() / 1000) + expiresInSeconds,
+    });
   }
 
   generateApiSignature(

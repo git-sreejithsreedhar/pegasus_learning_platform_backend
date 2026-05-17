@@ -25,8 +25,13 @@ async function bootstrap() {
   validator.validateAppConfig();
   validator.getCloudinaryConfig();
 
+  const frontendUrl =
+    configService.get<string>('app.frontend.frontendUrl') ??
+    configService.get<string>('FRONTEND_URL') ??
+    'http://localhost:4200';
+
   app.enableCors({
-    origin: 'http://localhost:4200',
+    origin: frontendUrl,
     credentials: true,
   });
 
@@ -36,7 +41,7 @@ async function bootstrap() {
 
   app.setGlobalPrefix('api/v1');
 
-  if (configService.get<string>('nodeEnv') === 'production') {
+  if (configService.get<string>('app.nodeEnv') === 'production') {
     app.use(helmet());
   }
 

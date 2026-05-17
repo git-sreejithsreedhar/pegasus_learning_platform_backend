@@ -25,7 +25,7 @@ export class MentorRepository implements IMentorRepository {
   ) {}
 
   async findWithPagination(query: PagePaginationQuery) {
-    return mongoPagePaginate(
+    return mongoPagePaginate<MentorDocument>(
       this.mentorModel,
       {},
       query.page ?? 1,
@@ -69,7 +69,7 @@ export class MentorRepository implements IMentorRepository {
   }
 
   async findById(id: string): Promise<Mentor | null> {
-    const doc = await this.mentorModel.findById(id).lean().exec();
+    const doc = await this.mentorModel.findById(id).exec();
     return doc ? MentorMapper.toDomain(doc) : null;
   }
 

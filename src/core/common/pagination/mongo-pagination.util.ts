@@ -1,7 +1,7 @@
 import { Model, FilterQuery } from 'mongoose';
 
 export async function mongoPagePaginate<T>(
-  model: Model<any>,
+  model: Model<T>,
   filter: FilterQuery<T>,
   page = 1,
   limit = 10,

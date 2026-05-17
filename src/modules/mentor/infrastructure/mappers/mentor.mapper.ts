@@ -1,96 +1,151 @@
 import { Mentor, MentorStatus } from '../../domain/entities/mentor.entity';
 import { MentorDocument } from '../database/models/mentor.schema';
 
+type FileResourceType = 'image' | 'video' | 'raw';
+
+interface PersistedFile {
+  publicId: string;
+  resourceType: FileResourceType;
+  originalName?: string;
+  uploadedAt: Date;
+}
+
+interface PersistedReview {
+  reviewerId: string;
+  comment: string;
+  rating: number;
+  createdAt: Date;
+  sessionId?: string;
+}
+
+interface PersistedMentor {
+  _id: { toString(): string };
+  userId: string;
+  primarySkill: string;
+  expertise?: string[];
+  skillProficiency?: number;
+  yearsExperience?: number;
+  about?: string;
+  profile?: {
+    avatar?: string;
+    bio?: string;
+  };
+  socialLinks?: {
+    linkedin?: string;
+    twitter?: string;
+    youtube?: string;
+    github?: string;
+    website?: string;
+  };
+  documents?: {
+    identificationDoc?: PersistedFile;
+    educationalDoc?: PersistedFile;
+    professionalDoc?: PersistedFile;
+    additionalDoc?: PersistedFile;
+  };
+  totalStudents?: number;
+  totalCourses?: number;
+  reviews?: PersistedReview[];
+  completionRate?: number;
+  ratings?: number[];
+  isApproved?: boolean;
+  communicationPref?: string;
+  hourlyRate?: number;
+  status: MentorStatus;
+  feedback?: {
+    current?: {
+      mentorMessage?: string;
+      action: MentorStatus;
+    };
+    history?: Array<{
+      mentorMessage?: string;
+      action: MentorStatus;
+      date: Date;
+    }>;
+  };
+}
+
 export class MentorMapper {
-  // static toDomain(doc: MentorDocument): Mentor {
-  static toDomain(doc: any): Mentor {
+  static toDomain(doc: MentorDocument): Mentor {
+    const mentor = doc as PersistedMentor;
+
     return new Mentor(
-      doc._id.toString(),
-      doc.userId,
-      doc.primarySkill,
-      doc.expertise ?? [],
-      doc.skillProficiency ?? 0,
-      doc.yearsExperience ?? 0,
-      doc.about ?? '',
+      mentor._id.toString(),
+      mentor.userId,
+      mentor.primarySkill,
+      mentor.expertise ?? [],
+      mentor.skillProficiency ?? 0,
+      mentor.yearsExperience ?? 0,
+      mentor.about ?? '',
       {
-        avatar: doc.profile?.avatar ?? '',
-        bio: doc.profile?.bio ?? '',
+        avatar: mentor.profile?.avatar ?? '',
+        bio: mentor.profile?.bio ?? '',
       },
       {
-        linkedin: doc.socialLinks?.linkedin ?? undefined,
-        twitter: doc.socialLinks?.twitter ?? undefined,
-        youtube: doc.socialLinks?.youtube ?? undefined,
-        github: doc.socialLinks?.github ?? undefined,
-        website: doc.socialLinks?.website ?? undefined,
+        linkedin: mentor.socialLinks?.linkedin ?? undefined,
+        twitter: mentor.socialLinks?.twitter ?? undefined,
+        youtube: mentor.socialLinks?.youtube ?? undefined,
+        github: mentor.socialLinks?.github ?? undefined,
+        website: mentor.socialLinks?.website ?? undefined,
       },
-      // doc.documents ?? {},
       {
-        identificationDoc: doc.documents?.identificationDoc
+        identificationDoc: mentor.documents?.identificationDoc
           ? {
-              ...doc.documents.identificationDoc,
-              originalName:
-                doc.documents.identificationDoc.originalName ?? undefined,
+              ...mentor.documents.identificationDoc,
+              originalName: mentor.documents.identificationDoc.originalName,
             }
           : undefined,
 
-        educationalDoc: doc.documents?.educationalDoc
+        educationalDoc: mentor.documents?.educationalDoc
           ? {
-              ...doc.documents.educationalDoc,
-              originalName:
-                doc.documents.educationalDoc.originalName ?? undefined,
+              ...mentor.documents.educationalDoc,
+              originalName: mentor.documents.educationalDoc.originalName,
             }
           : undefined,
 
-        professionalDoc: doc.documents?.professionalDoc
+        professionalDoc: mentor.documents?.professionalDoc
           ? {
-              ...doc.documents.professionalDoc,
-              originalName:
-                doc.documents.professionalDoc.originalName ?? undefined,
+              ...mentor.documents.professionalDoc,
+              originalName: mentor.documents.professionalDoc.originalName,
             }
           : undefined,
 
-        additionalDoc: doc.documents?.additionalDoc
+        additionalDoc: mentor.documents?.additionalDoc
           ? {
-              ...doc.documents.additionalDoc,
-              originalName:
-                doc.documents.additionalDoc.originalName ?? undefined,
+              ...mentor.documents.additionalDoc,
+              originalName: mentor.documents.additionalDoc.originalName,
             }
           : undefined,
       },
 
-      doc.totalStudents ?? 0,
-      doc.totalCourses ?? 0,
-      // doc.reviews ?? [],
-      (doc.reviews ?? []).map((review) => ({
+      mentor.totalStudents ?? 0,
+      mentor.totalCourses ?? 0,
+      (mentor.reviews ?? []).map((review) => ({
         reviewerId: review.reviewerId,
         comment: review.comment,
         rating: review.rating,
-        createdAt: review.createdAt as Date,
+        createdAt: review.createdAt,
         sessionId: review.sessionId ?? undefined,
       })),
-      doc.completionRate ?? 0,
-      doc.ratings ?? [],
-      doc.isApproved ?? false,
-      doc.communicationPref ?? undefined,
-      doc.hourlyRate ?? undefined,
-      doc.status,
-      // {
-      //   current: doc.feedback?.current,
-      //   history: doc.feedback?.history ?? [],
-      // },
+      mentor.completionRate ?? 0,
+      mentor.ratings ?? [],
+      mentor.isApproved ?? false,
+      mentor.communicationPref ?? undefined,
+      mentor.hourlyRate ?? undefined,
+      mentor.status,
       {
-        current: doc.feedback?.current
+        current: mentor.feedback?.current
           ? {
-              mentorMessage: doc.feedback.current.mentorMessage ?? '',
-              action: doc.feedback.current.action as MentorStatus,
+              mentorMessage: mentor.feedback.current.mentorMessage ?? '',
+              action: mentor.feedback.current.action,
             }
           : undefined,
 
         history:
-          doc.feedback?.history?.map((h) => ({
+          mentor.feedback?.history?.map((h) => ({
             mentorMessage: h.mentorMessage ?? '',
-            action: h.action as MentorStatus,
-            date: h.date as Date,
+            action: h.action,
+            date: h.date,
           })) ?? [],
       },
     );
