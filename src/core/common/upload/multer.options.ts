@@ -19,11 +19,14 @@
 //     callback(null, true);
 import { BadRequestException } from '@nestjs/common';
 import { diskStorage } from 'multer';
+import type { Request } from 'express';
+
+type FileFilterCallback = (error: Error | null, acceptFile: boolean) => void;
 
 export const MulterOptions = {
   storage: diskStorage({
     destination: './uploads',
-    filename: (req, file, cb) => {
+    filename: (_req: Request, file: Express.Multer.File, cb) => {
       const ext = file.originalname.split('.').pop();
       const name = file.originalname
         .replace(/\.[^/.]+$/, '')
@@ -37,7 +40,11 @@ export const MulterOptions = {
     fileSize: 10 * 1024 * 1024, // 10MB
   },
 
-  fileFilter: (req, file, cb) => {
+  fileFilter: (
+    _req: Request,
+    file: Express.Multer.File,
+    cb: FileFilterCallback,
+  ) => {
     const imageTypes = ['image/jpeg', 'image/png', 'image/jpg'];
     const pdfTypes = ['application/pdf'];
 
@@ -45,7 +52,8 @@ export const MulterOptions = {
       (file.fieldname === 'avatar' && imageTypes.includes(file.mimetype)) ||
       (file.fieldname !== 'avatar' && pdfTypes.includes(file.mimetype))
     ) {
-      return cb(null, true);
+      cb(null, true);
+      return;
     }
 
     cb(

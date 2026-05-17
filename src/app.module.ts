@@ -19,9 +19,6 @@ import envConfig from './core/config/env.config';
 import graphqlConfig from './core/config/graphql.config';
 import { MentorModule } from './modules/mentor/mentor.module';
 import { AdminModule } from './modules/admin/admin.module';
-import { APP_GUARD } from '@nestjs/core';
-import { JwtAuthGuard } from './core/common/guards/jwt-Auth.guard';
-import { RolesGuard } from './core/common/guards/roles.guard';
 
 @Module({
   imports: [
@@ -45,7 +42,7 @@ import { RolesGuard } from './core/common/guards/roles.guard';
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
+      useFactory: () => ({
         signOptions: { issuer: 'Pegasus-App' },
       }),
       // inject: [ConfigService],

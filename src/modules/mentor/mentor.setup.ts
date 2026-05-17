@@ -3,7 +3,7 @@
 // import { IFileStorage } from 'src/core/common/upload/file-storage.interface';
 
 // export interface MentorUsecases {
- 
+
 // }
 
 // export const MentorSetup = {
@@ -13,10 +13,9 @@
 //     fileStorage: IFileStorage,
 //     logger: Logger,
 //   ): MentorUsecases {
-  
 
 //     return {
-  
+
 //     };
 //   },
 // };

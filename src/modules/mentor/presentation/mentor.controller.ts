@@ -26,9 +26,13 @@ import {
   validateImage,
   validatePdf,
 } from 'src/core/common/upload/validation-helper';
+import { safeJsonParse } from 'src/core/utils/json.util';
 
 interface MentorRegisterMultipartBody {
+  phone: string;
+  about: string;
   primarySkill: string;
+  communicationPref: string;
 
   expertise?: string; // JSON string
   customSkills?: string; // if still sent by FE, otherwise remove
@@ -139,19 +143,14 @@ export class MentorController {
     const parsedBody: Partial<MentorRegisterDto> = {};
 
     try {
-      if (typeof body.profile === 'string') {
-        parsedBody.profile = JSON.parse(body.profile);
-      }
+      parsedBody.profile = safeJsonParse(body.profile, { bio: '' });
+      parsedBody.socialLinks = safeJsonParse(body.socialLinks, {});
+      parsedBody.expertise = safeJsonParse(body.expertise, []);
 
-      if (typeof body.socialLinks === 'string') {
-        parsedBody.socialLinks = JSON.parse(body.socialLinks);
-      }
-
-      if (typeof body.expertise === 'string') {
-        parsedBody.expertise = JSON.parse(body.expertise);
-      }
-
+      parsedBody.phone = body.phone;
+      parsedBody.about = body.about;
       parsedBody.primarySkill = body.primarySkill;
+      parsedBody.communicationPref = body.communicationPref;
       parsedBody.skillProficiency = body.skillProficiency
         ? Number(body.skillProficiency)
         : 1;
@@ -166,7 +165,7 @@ export class MentorController {
     }
 
     /* ---------------- Validate DTO ---------------- */
-    const dto = plainToInstance(MentorRegisterDto, body, {
+    const dto = plainToInstance(MentorRegisterDto, parsedBody, {
       enableImplicitConversion: true,
     });
 

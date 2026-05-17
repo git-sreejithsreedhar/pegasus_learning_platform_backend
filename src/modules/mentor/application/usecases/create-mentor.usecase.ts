@@ -64,7 +64,9 @@ export class CreateMentorUsecase implements ICreateMentorUsecase {
 
       return mentor;
     } catch (error) {
-      this.logger.error('CreateMentorUsecase failed', { error });
+      this.logger.error('CreateMentorUsecase failed', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
       throw error;
     }
   }
