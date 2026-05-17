@@ -13,3 +13,10 @@ export class AdminUserListDto {
   courses: number;
   rating: number;
 }
+
+// export interface ListUsersDto {
+//   page?: number;
+//   limit?: number;
+//   search?: string;
+//   role?: string;
+// }

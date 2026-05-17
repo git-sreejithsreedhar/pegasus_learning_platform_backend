@@ -3,7 +3,7 @@ import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
 import helmet from 'helmet';
 import compression from 'compression';
-import { ValidationPipe, Logger } from '@nestjs/common';
+import { ValidationPipe, Logger, BadRequestException } from '@nestjs/common';
 import { WinstonModule } from 'nest-winston';
 import { HttpExceptionFilter } from './core/common/filters/http-exception.fillters';
 import { winstonConfig } from './core/config/logger.config';
@@ -13,6 +13,7 @@ import { join } from 'path';
 import { ConfigValidationService } from './core/config/config-validation.service';
 import { AppGqlExceptionFilter } from './core/common/filters/gql-exception.filters';
 import { DomainExceptionFilter } from './core/common/filters/domain-exception.filter';
+import { JsonBodyPipe } from './core/utils/parse.util';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
@@ -44,11 +45,16 @@ async function bootstrap() {
   app.use(cookieParser());
 
   app.useGlobalPipes(
+    new JsonBodyPipe(),
     new ValidationPipe({
       whitelist: true,
       transform: true,
       transformOptions: {
         enableImplicitConversion: true,
+      },
+      exceptionFactory: (errors) => {
+        console.log(JSON.stringify(errors, null, 2));
+        return new BadRequestException(errors);
       },
     }),
   );

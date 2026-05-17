@@ -12,6 +12,7 @@ import {
   MentorModel,
   MentorSchema,
 } from './infrastructure/database/models/mentor.schema';
+import { MentorFileUploadService } from './infrastructure/services/mentor-file-upload.service';
 
 @Module({
   imports: [
@@ -28,7 +29,12 @@ import {
 
   controllers: [MentorController],
 
-  providers: [...MentorProviders, ...MentorUsecaseProviders, MentorRepository],
+  providers: [
+    ...MentorProviders,
+    ...MentorUsecaseProviders,
+    MentorRepository,
+    MentorFileUploadService,
+  ],
 
   exports: [...MentorProviders, ...MentorUsecaseProviders, MentorRepository],
 })

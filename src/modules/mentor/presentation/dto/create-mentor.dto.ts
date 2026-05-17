@@ -18,6 +18,7 @@ export class ProfileDto {
   @IsString()
   avatar?: string;
 
+  @IsOptional()
   @IsString()
   bio: string;
 }
@@ -55,7 +56,6 @@ export class SignedDocumentDto {
   @IsString()
   originalName?: string;
 
-  // @IsOptional()
   @IsDate()
   uploadedAt: Date;
 }
@@ -118,7 +118,8 @@ export class MentorRegisterDto {
 
   @ValidateNested()
   @Type(() => SocialLinksDto)
-  socialLinks: SocialLinksDto;
+  @IsOptional()
+  socialLinks?: SocialLinksDto;
 
   @IsOptional()
   @ValidateNested()

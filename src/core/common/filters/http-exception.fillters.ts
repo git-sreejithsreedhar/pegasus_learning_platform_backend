@@ -49,7 +49,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     this.logger.error(`[HTTP] ${request.method} ${request.url}`, {
       status,
       errorCode,
-      exception, // 🔥 only this
+      exception,
     });
 
     response.status(status).json({

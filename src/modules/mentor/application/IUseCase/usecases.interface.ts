@@ -1,14 +1,16 @@
 import { CreateMentorResponse } from '../dto/create-mentor.response';
 // import { Mentor } from '../../domain/entities/mentor.entity';
 import { MentorRegisterDto } from '../../presentation/dto/create-mentor.dto';
+import { EligibilityResult } from '../usecases/create-mentor.usecase';
 
 // create mentor usecase interface
 export interface ICreateMentorUsecase {
   execute(
     userId: string,
     mentorData: MentorRegisterDto,
-    // files?: Express.Multer.File[],
   ): Promise<CreateMentorResponse>;
+
+  checkEligibility(userId: string): Promise<EligibilityResult>;
 }
 
 // approve mmentor

@@ -6,6 +6,17 @@ import { Mentor } from '../../domain/entities/mentor.entity';
 import { HttpException } from '@nestjs/common';
 import { Logger } from 'winston';
 import { CreateMentorResponse } from '../dto/create-mentor.response';
+import { MentorStatus } from 'src/modules/admin/application/dtos/get-mentor-details.dto';
+
+export type EligibilityResult = {
+  allowed: boolean;
+  status?: string;
+  message?: string;
+  feedback?: {
+    mentorMessage: string;
+    action: MentorStatus;
+  };
+};
 
 export class CreateMentorUsecase implements ICreateMentorUsecase {
   constructor(
@@ -126,5 +137,45 @@ export class CreateMentorUsecase implements ICreateMentorUsecase {
       message: 'Mentor application submitted successfully',
       mentorId: mentor._id!,
     };
+  }
+
+  // Check Elegibility
+  async checkEligibility(userId: string): Promise<EligibilityResult> {
+    const existingMentor = await this.mentorRepo.findByUserId(userId);
+
+    if (!existingMentor) return { allowed: true };
+
+    const status = existingMentor.mentorStatus;
+
+    switch (status) {
+      case 'approved':
+        return {
+          allowed: false,
+          status,
+          message: 'You are already an approved mentor',
+        };
+      case 'pending':
+        return {
+          allowed: false,
+          status,
+          message: 'Your mentor application is under review',
+        };
+      case 'correction_required':
+        return {
+          allowed: false,
+          status,
+          message: 'Corrections required before approval',
+          feedback: existingMentor.mentorFeedback.current,
+        };
+      case 'rejected':
+        return {
+          allowed: false,
+          status,
+          message: 'Your mentor application was rejected',
+          feedback: existingMentor.mentorFeedback.current,
+        };
+      default:
+        return { allowed: true };
+    }
   }
 }
