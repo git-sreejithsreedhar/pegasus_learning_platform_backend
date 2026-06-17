@@ -7,24 +7,34 @@ import {
 } from '../../application/interfaces/token-service.interface';
 import { JwtService, JwtSignOptions, JwtVerifyOptions } from '@nestjs/jwt';
 import { ConfigValidationService } from 'src/core/config/config-validation.service';
+// import {
+//   JsonWebTokenError,
+//   TokenExpiredError as JwtExpiredError,
+// } from 'jsonwebtoken';
+// import { TokenExpiredError } from '../../domain/errors/token-expired.error';
+// import { TokenInvalidError } from '../../domain/errors/token-invalid.error';
 
-export interface JWTConfifg {
+export interface JWTConfig {
   accessTokenSecret: string;
   refreshTokenSecret: string;
+  mailVerificationTokenSecret: string;
+
   accessTokenExpiry: string;
   refreshTokenExpiry: string;
+  mailVerificationTokenExpiry: string;
+
   issuer: string;
 }
 
 @Injectable()
 export class JwtTokenService implements ITokenService {
-  private readonly tokenConfig: JWTConfifg;
+  private readonly tokenConfig: JWTConfig;
 
   constructor(
-    private readonly configValidaionService: ConfigValidationService,
+    private readonly configValidationService: ConfigValidationService,
     private readonly jwtService: JwtService,
   ) {
-    this.tokenConfig = this.configValidaionService.validateTokenConfig();
+    this.tokenConfig = this.configValidationService.validateTokenConfig();
   }
 
   private getAccessTokenOptions(): JwtSignOptions {
@@ -43,92 +53,87 @@ export class JwtTokenService implements ITokenService {
     };
   }
 
-  private getAccessTokenVerifyOptions(): JwtVerifyOptions {
+  private getMailVerificationTokenOptions(): JwtSignOptions {
     return {
-      secret: this.tokenConfig.accessTokenSecret,
+      secret: this.tokenConfig.mailVerificationTokenSecret,
+      expiresIn: this.tokenConfig.mailVerificationTokenExpiry,
       issuer: this.tokenConfig.issuer,
     };
   }
 
-  private getRefreshTokenVerifyOptions(): JwtVerifyOptions {
+  private getMailVerificationVerifyOptions(): JwtVerifyOptions {
     return {
-      secret: this.tokenConfig.refreshTokenSecret,
+      secret: this.tokenConfig.mailVerificationTokenSecret,
       issuer: this.tokenConfig.issuer,
     };
   }
 
   async generateAccessToken(payload: object): Promise<string> {
-    try {
-      return await this.jwtService.signAsync(
-        payload,
-        this.getAccessTokenOptions(),
-      );
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        throw new Error(`Failed to generate access token: ${error.message}`);
-      }
-      throw new Error(`Failed to generate access token`);
-    }
+    return this.jwtService.signAsync(payload, this.getAccessTokenOptions());
   }
 
   async generateRefreshToken(payload: object): Promise<string> {
-    try {
-      return await this.jwtService.signAsync(
-        payload,
-        this.getRefreshTokenOptions(),
-      );
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        throw new Error(`Failed to generate access token: ${error.message}`);
-      }
-      throw new Error(`Failed to generate access token`);
-    }
+    return this.jwtService.signAsync(payload, this.getRefreshTokenOptions());
+  }
+
+  async createEmailVerificationToken(payload: object): Promise<string> {
+    return this.jwtService.signAsync(
+      payload,
+      this.getMailVerificationTokenOptions(),
+    );
   }
 
   async generateTokenPair(payload: object): Promise<GeneratedTokens> {
-    try {
-      const [accessToken, refreshToken] = await Promise.all([
-        this.generateAccessToken(payload),
-        this.generateRefreshToken(payload),
-      ]);
-      return { accessToken, refreshToken };
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        throw new Error(`Failed to generate tokens: ${error.message}`);
-      }
-      throw new Error(`Failed to generate access tokens.`);
-    }
+    const [accessToken, refreshToken] = await Promise.all([
+      this.generateAccessToken(payload),
+      this.generateRefreshToken(payload),
+    ]);
+    return { accessToken, refreshToken };
   }
 
   async verifyAccessToken(token: string): Promise<TokenVerificationResult> {
-    return this.verifyToken(token, this.getAccessTokenVerifyOptions());
+    return this.verifyToken(token, this.getAccessTokenOptions());
   }
 
   async verifyRefreshToken(token: string): Promise<TokenVerificationResult> {
-    return this.verifyToken(token, this.getRefreshTokenVerifyOptions());
+    return this.verifyToken(token, this.getRefreshTokenOptions());
+  }
+
+  async verifyEmailVerificationToken(
+    token: string,
+  ): Promise<TokenVerificationResult> {
+    return this.verifyToken(token, this.getMailVerificationVerifyOptions());
   }
 
   private async verifyToken(
     token: string,
     options: JwtVerifyOptions,
   ): Promise<TokenVerificationResult> {
-    try {
-      const payload = await this.jwtService.verifyAsync<TokenPayload>(
-        token,
-        options,
-      );
-      return {
-        isValid: true,
-        payload: payload,
-      };
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        return { isValid: false, error: error.message };
-      }
-      return { isValid: false, error: 'Unknown verification error' };
-    }
+    const payload = await this.jwtService.verifyAsync<TokenPayload>(
+      token,
+      options,
+    );
+    return { isValid: true, payload };
   }
 }
+// private async verifyToken(
+//   token: string,
+//   options: JwtVerifyOptions,
+// ): Promise<TokenPayload> {
+//   try {
+//     return await this.jwtService.verifyAsync<TokenPayload>(token, options);
+//   } catch (error) {
+//     if (error instanceof TokenExpiredError) {
+//       throw new TokenExpiredError();
+//     }
+
+//     if (error instanceof JsonWebTokenError) {
+//       throw new TokenInvalidError();
+//     }
+
+//     throw error; // unknown infra failure
+//   }
+// }
 
 //   async revokeToken(token: string): Promise<void> {
 //     try {
@@ -137,5 +142,5 @@ export class JwtTokenService implements ITokenService {
 //       throw new BadRequestException();
 //     }
 //   }
-
+// }
 // }

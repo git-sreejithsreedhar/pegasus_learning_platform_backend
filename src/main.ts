@@ -7,54 +7,68 @@ import { ValidationPipe } from '@nestjs/common';
 import { WINSTON_MODULE_PROVIDER, WinstonModule } from 'nest-winston';
 import { Logger as WinstonLogger } from 'winston';
 import { HttpExceptionFilter } from './core/common/filters/http-exception.fillters';
-import { GqlHttpExceptionFilter } from './core/common/filters/gql-exception.filters';
-import { GlobalLoggingInterceptor } from './core/common/intercetors/global-logging.interceptor';
+// import { GqlHttpExceptionFilter } from './core/common/filters/gql-exception.filters';
+// import { GlobalLoggingInterceptor } from './core/common/intercetors/global-logging.interceptor';
 import { winstonConfig } from './core/config/logger.config';
 import cookieParser from 'cookie-parser';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { join } from 'path';
 
 async function bootstrap() {
-  // const app = await NestFactory.create(AppModule, { bufferLogs: true });
-  const app = await NestFactory.create(AppModule, {
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     logger: WinstonModule.createLogger(winstonConfig),
   });
+
   const configService = app.get(ConfigService);
 
   app.enableCors({
-    origin: configService.get<string>('FRONTEND_URL') || '*',
+    origin: 'http://localhost:4200',
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    optionsSuccessStatus: 200,
+  });
+
+  app.useStaticAssets(join(process.cwd(), 'uploads'), {
+    prefix: '/uploads',
   });
 
   app.setGlobalPrefix('api/v1');
 
   if (configService.get<string>('nodeEnv') === 'production') {
     app.use(helmet());
-    // app.enableCors({ origin: 'https://yourdomain.com' });
-  } else {
-    app.use(helmet({ contentSecurityPolicy: false }));
-    app.enableCors({ origin: '*' });
   }
-  app.use(compression());
 
+  app.use(compression());
+  app.use(cookieParser());
+
+  // app.useGlobalPipes(
+  //   new ValidationPipe({
+  //     whitelist: true,
+  //     forbidNonWhitelisted: true,
+  //     transform: true,
+  //   }),
+  // );
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
-      forbidNonWhitelisted: true,
       transform: true,
+      transformOptions: {
+        enableImplicitConversion: true,
+      },
     }),
   );
-  // parsing cookies
-  app.use(cookieParser());
 
-  // Get actual Winston instance
+  // Get logger
   const logger = app.get<WinstonLogger>(WINSTON_MODULE_PROVIDER);
 
-  // instance for the interceptor
-  app.useGlobalInterceptors(new GlobalLoggingInterceptor(logger));
+  // Interceptor
+  // app.useGlobalInterceptors(new GlobalLoggingInterceptor(logger));
 
-  // instance for filters
+  // Filters — ONLY ONCE
   app.useGlobalFilters(
     new HttpExceptionFilter(logger),
-    new GqlHttpExceptionFilter(logger),
+    // new GqlHttpExceptionFilter(logger),
   );
 
   const port = configService.get<number>('PORT') || 3000;

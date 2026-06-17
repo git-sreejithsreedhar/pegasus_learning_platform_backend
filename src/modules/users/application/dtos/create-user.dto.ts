@@ -6,11 +6,9 @@ import {
   MinLength,
   IsEnum,
   IsOptional,
-  ValidateNested,
+  // ValidateNested,
   IsArray,
 } from 'class-validator';
-import { CreateProfileDto } from './create-profile.dto';
-import { Type } from 'class-transformer';
 import { UserRole } from '../../domain/entities/users.entity';
 
 export class CreateUserDto {
@@ -22,15 +20,23 @@ export class CreateUserDto {
   @MinLength(6)
   password: string;
 
-  @IsEnum(UserRole)
-  @IsOptional()
-  role?: UserRole;
+  @IsString()
+  name: string;
 
-  @ValidateNested()
-  @Type(() => CreateProfileDto)
-  profile: CreateProfileDto;
+  @IsOptional()
+  @IsString()
+  avatar?: string;
 
   @IsArray()
+  @IsEnum(UserRole, { each: true })
   @IsOptional()
-  preferences?: string[];
+  roles?: UserRole[];
+
+  // @ValidateNested()
+  // @Type(() => CreateProfileDto)
+  // profile: CreateProfileDto;
+
+  // @IsArray()
+  // @IsOptional()
+  // preferences?: string[];
 }

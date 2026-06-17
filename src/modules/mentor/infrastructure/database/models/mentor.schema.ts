@@ -1,0 +1,152 @@
+import { Schema, Document } from 'mongoose';
+
+export interface SocialLinks {
+  linkedin?: string;
+  twitter?: string;
+  youtube?: string;
+  github?: string;
+  website?: string;
+}
+
+export interface MentorDocuments {
+  identificationDoc?: string;
+  educationalDoc?: string;
+  professionalDoc?: string;
+  additionalDoc?: string;
+}
+
+export interface Profile {
+  avatar?: string;
+  bio?: string;
+}
+
+export type MentorStatus =
+  | 'approved'
+  | 'rejected'
+  | 'correction_required'
+  | 'pending';
+
+export interface FeedbackCurrent {
+  mentorMessage: string;
+  action: MentorStatus;
+}
+
+export interface FeedbackHistory {
+  mentorMessage: string;
+  action: 'approved' | 'rejected' | 'correction_required' | 'pending';
+  date: Date;
+}
+
+export interface AdminFeedback {
+  current?: FeedbackCurrent;
+  history: FeedbackHistory[];
+}
+
+export type MentorDocument = MentorModel & Document;
+
+export class MentorModel {
+  _id: string;
+  userId: string;
+  primarySkill: string;
+  expertise: string[];
+  skillProficiency: number;
+  yearsExperience: number;
+  about: string;
+  profile: Profile;
+  socialLinks: SocialLinks;
+  documents: MentorDocuments;
+  communicationPref?: string;
+  hourlyRate?: number;
+  totalStudents: number;
+  totalCourses: number;
+  reviews: Review[];
+  completionRate: number;
+  ratings: number[];
+  isApproved: boolean;
+  status: MentorStatus;
+  feedback: AdminFeedback;
+}
+
+export const MentorSchema = new Schema(
+  {
+    userId: { type: String, required: true },
+    primarySkill: String,
+    expertise: [String],
+    skillProficiency: Number,
+    yearsExperience: Number,
+    about: String,
+    profile: {
+      avatar: String,
+      bio: String,
+    },
+
+    socialLinks: {
+      linkedin: String,
+      twitter: String,
+      youtube: String,
+      github: String,
+      website: String,
+    },
+
+    documents: {
+      identificationDoc: String,
+      educationalDoc: String,
+      professionalDoc: String,
+      additionalDoc: String,
+    },
+
+    communicationPref: String,
+    hourlyRate: Number,
+
+    // status
+    status: {
+      type: String,
+      enum: ['pending', 'approved', 'rejected', 'correction_required'],
+      default: 'pending',
+    },
+
+    // fedback
+    feedback: {
+      current: {
+        mentorMessage: { type: String },
+        action: { type: String },
+      },
+      history: [
+        {
+          mentorMessage: String,
+          action: String,
+          date: { type: Date, default: Date.now },
+        },
+      ],
+    },
+
+    // Additional fields
+    totalStudents: { type: Number, default: 0 },
+    totalCourses: { type: Number, default: 0 },
+    reviews: { type: Array, default: [] },
+    completionRate: { type: Number, default: 0 },
+    ratings: { type: [Number], default: [] },
+    isApproved: { type: Boolean, default: false },
+  },
+  { timestamps: true },
+);
+
+MentorSchema.index({ userId: 1 }, { unique: true });
+MentorSchema.index({ isApproved: 1 });
+MentorSchema.index({ primarySkill: 1, isApproved: 1 });
+MentorSchema.index({ hourlyRate: 1, isApproved: 1 });
+MentorSchema.index({ yearsExperience: -1 });
+MentorSchema.index({ expertise: 1 });
+MentorSchema.index({ primarySkill: 'text' }, { name: 'MentorSearchIndex' });
+MentorSchema.index({ status: 1 });
+
+// Review
+export interface Review {
+  reviewerId: string;
+  sessionId?: string;
+  comment: string;
+  rating: number;
+  createdAt: Date;
+}
+
+export type ReviewDocument = Review & Document;

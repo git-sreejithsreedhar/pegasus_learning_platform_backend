@@ -47,7 +47,7 @@ export class MailService implements IMailService {
   async sendPasswordReset(to: string, resetLink: string): Promise<void> {
     try {
       await this.transporter.sendMail({
-        from: this.appName,
+        from: this.configService.get('app.mail.user'),
         to: to,
         subject: 'Reset Your Password',
         html: `

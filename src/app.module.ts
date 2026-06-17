@@ -7,7 +7,6 @@ import { ApolloDriverConfig, ApolloDriver } from '@nestjs/apollo';
 import { MongoProvider } from './core/database/mongo.provider';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
-import { TutorsModule } from './modules/tutors/tutors.module';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigValidationService } from './core/config/config-validation.service';
 import { JwtTokenService } from './modules/auth/infrastructure/jwt/jwt.service';
@@ -18,6 +17,8 @@ import { winstonConfig } from './core/config/logger.config';
 import databaseConfig from './core/database/database.config';
 import envConfig from './core/config/env.config';
 import graphqlConfig from './core/config/graphql.config';
+import { MentorModule } from './modules/mentor/mentor.module';
+import { AdminModule } from './modules/admin/admin.module';
 
 @Module({
   imports: [
@@ -41,7 +42,7 @@ import graphqlConfig from './core/config/graphql.config';
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
+      useFactory: () => ({
         signOptions: { issuer: 'Pegasus-App' },
       }),
       // inject: [ConfigService],
@@ -53,7 +54,8 @@ import graphqlConfig from './core/config/graphql.config';
     // Feature Modules
     AuthModule,
     UsersModule,
-    TutorsModule,
+    MentorModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [
@@ -65,6 +67,8 @@ import graphqlConfig from './core/config/graphql.config';
       provide: JwtTokenService,
       useClass: JwtTokenService,
     },
+    // { provide: APP_GUARD, useClass: RolesGuard },
+    // { provide: APP_GUARD, useClass: JwtAuthGuard },
   ],
 })
 export class AppModule {

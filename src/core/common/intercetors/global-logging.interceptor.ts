@@ -80,11 +80,26 @@ export class GlobalLoggingInterceptor implements NestInterceptor {
 //   CallHandler,
 //   Inject,
 // } from '@nestjs/common';
-// import { Observable, tap, catchError, throwError } from 'rxjs';
-// import { GqlExecutionContext } from '@nestjs/graphql';
+// import { Observable, throwError } from 'rxjs';
+// import { catchError, tap } from 'rxjs/operators';
+// import { GqlExecutionContext, GqlContextType } from '@nestjs/graphql';
+// import { Request } from 'express';
+// import { GraphQLResolveInfo } from 'graphql';
 // import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 // import { Logger } from 'winston';
-// import { v4 as uuid } from 'uuid';
+// import { randomUUID } from 'crypto';
+
+// interface LogCtx {
+//   reqId: string;
+//   type: 'REST' | 'GraphQL';
+//   method?: string;
+//   url?: string;
+//   resolver?: string;
+//   field?: string;
+//   userId?: string;
+//   ip?: string;
+//   args?: unknown; // added for GraphQL args
+// }
 
 // @Injectable()
 // export class GlobalLoggingInterceptor implements NestInterceptor {
@@ -93,46 +108,73 @@ export class GlobalLoggingInterceptor implements NestInterceptor {
 //     private readonly logger: Logger,
 //   ) {}
 
-//   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
-//     const requestId = uuid();
+//   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
 //     const start = Date.now();
+//     const reqId = randomUUID(); // unique correlation id
 
-//     let target = '';
-//     let args: unknown;
+//     const ctx = this.buildLogContext(context, reqId);
 
-//     // REST
-//     if (context.getType() === 'http') {
-//       const req = context.switchToHttp().getRequest();
-//       target = `[REST] ${req.method} ${req.url}`;
-//       args = req.body;
-//     }
-
-//     // GraphQL
-//     if ((context.getType() as any) === 'graphql') {
-//       const gqlCtx = GqlExecutionContext.create(context);
-//       const info = gqlCtx.getInfo();
-//       args = gqlCtx.getArgs();
-//       target = `[GraphQL] ${info.parentType.name}.${info.fieldName}`;
-//     }
-
-//     this.logger.info(`${target} - START`, { requestId, args });
+//     this.logger.info('Incoming request', ctx);
 
 //     return next.handle().pipe(
-//       tap(() => {
-//         const took = Date.now() - start;
-//         this.logger.info(`${target} - SUCCESS (${took}ms)`, { requestId });
-//       }),
-//       catchError((error) => {
-//         const took = Date.now() - start;
-
-//         this.logger.error(`${target} - FAILED (${took}ms)`, {
-//           requestId,
-//           error: error instanceof Error ? error.message : error,
-//           stack: error instanceof Error ? error.stack : undefined,
+//       tap((data) => {
+//         this.logger.info('Request completed', {
+//           ...ctx,
+//           duration: Date.now() - start,
+//           status: 'success',
 //         });
-
-//         return throwError(() => error);
+//       }),
+//       catchError((err: unknown) => {
+//         this.logger.error('Request failed', {
+//           ...ctx,
+//           duration: Date.now() - start,
+//           status: 'error',
+//           error: err instanceof Error ? err.message : err,
+//           stack: err instanceof Error ? err.stack : undefined,
+//           response: (err as any)?.getResponse?.(),
+//         });
+//         return throwError(() => err);
 //       }),
 //     );
+//   }
+
+//   private buildLogContext(context: ExecutionContext, reqId: string): LogCtx {
+//     const type = context.getType<GqlContextType>();
+
+//     const base: LogCtx = {
+//       reqId,
+//       type: type === 'http' ? 'REST' : 'GraphQL',
+//     };
+
+//     // REST
+//     if (type === 'http') {
+//       const req = context.switchToHttp().getRequest<Request>();
+//       return {
+//         ...base,
+//         method: req.method,
+//         url: req.originalUrl || req.url,
+//         ip: req.ip,
+//         userId: (req as any).user?.id,
+//       };
+//     }
+
+//     // GRAPHQL
+//     if (type === 'graphql') {
+//       const gql = GqlExecutionContext.create(context);
+//       const info = gql.getInfo<GraphQLResolveInfo>();
+//       const args = gql.getArgs();
+//       const req = gql.getContext<{ req?: Request }>().req;
+
+//       return {
+//         ...base,
+//         resolver: info.parentType.name,
+//         field: info.fieldName,
+//         ip: req?.ip,
+//         userId: (req as any)?.user?.id,
+//         args: process.env.NODE_ENV === 'development' ? args : undefined,
+//       };
+//     }
+
+//     return base;
 //   }
 // }

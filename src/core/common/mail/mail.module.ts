@@ -10,7 +10,7 @@ import { createMailTransporter } from './mail.config';
       provide: 'MAIL_TRANSPORTER',
       inject: [ConfigService],
       useFactory(configService: ConfigService) {
-        createMailTransporter(configService);
+        return createMailTransporter(configService);
       },
     },
 
@@ -22,19 +22,3 @@ import { createMailTransporter } from './mail.config';
   exports: [IMailServiceToken],
 })
 export class MailModule {}
-
-// @Module({
-//   imports: [ConfigModule],
-//   providers: [
-//     {
-//       provide: 'MAIL_TRANSPORTER',
-//       inject: [ConfigService],
-//       useFactory: (configService: ConfigService) => {
-//         return createMailTransporter(configService);
-//       },
-//     },
-//     MailService,
-//   ],
-//   exports: [MailService],
-// })
-// export class MailModule {}

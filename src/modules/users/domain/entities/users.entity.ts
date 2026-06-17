@@ -3,30 +3,30 @@ import { CreateUserDto } from 'src/modules/users/application/dtos/create-user.dt
 
 export enum UserRole {
   STUDENT = 'student',
-  INSTRUCTOR = 'instructor',
+  MENTOR = 'mentor',
   ADMIN = 'admin',
   USER = 'USER',
 }
 
-export class UserProfile {
-  constructor(
-    public name: string,
-    public avatar?: string,
-    public bio?: string,
-  ) {}
-}
+// export class UserProfile {
+//   constructor(
+//     public name: string,
+//     public avatar?: string,
+//     public bio?: string,
+//   ) {}
+// }
 
 export interface toDomain {
   _id: string;
   email: string;
   password: string;
-  role: string;
-  profile: UserProfile;
+  name: string;
+  avatar: string;
+  roles: UserRole[];
+  isActive: boolean;
   isBlocked: boolean;
   isEmailVerified: boolean;
-  preferences: string[];
   lastLogin: Date;
-  refreshToken: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -35,11 +35,15 @@ export interface UserReconstitutionProps {
   _id: string;
   email: string;
   password: string;
-  role: UserRole;
-  profile: UserProfile;
+  name: string;
+  avatar?: string;
+  // role: UserRole;
+  roles: UserRole[];
+  // profile: UserProfile;
+  isActive: boolean;
   isBlocked: boolean;
   isEmailVerified: boolean;
-  preferences: string[];
+  // preferences: string[];
   lastLogin?: Date;
   refreshToken?: string;
   createdAt: Date;
@@ -50,11 +54,15 @@ export class User {
   public readonly _id: string;
   public email: string;
   public password: string;
-  public role: UserRole;
-  public profile: UserProfile;
+  public name: string;
+  public avatar: string;
+  // public role: UserRole;
+  public roles: UserRole[];
+  // public profile: UserProfile;
+  public isActive: boolean;
   public isBlocked: boolean;
   public isEmailVerified: boolean;
-  public preferences: string[];
+  // public preferences: string[];
   public lastLogin?: Date;
   public refreshToken?: string;
   public readonly createdAt: Date;
@@ -64,11 +72,15 @@ export class User {
     _id: string,
     email: string,
     password: string,
-    role: UserRole,
-    profile: UserProfile,
+    name: string,
+    avatar: string,
+    // role: UserRole,
+    roles: UserRole[],
+    // profile: UserProfile,
+    isActive: boolean,
     isBlocked = false,
     isEmailVerified = false,
-    preferences: string[] = [],
+    // preferences: string[] = [],
     lastLogin?: Date,
     refreshToken?: string,
     createdAt = new Date(),
@@ -77,11 +89,14 @@ export class User {
     this._id = _id;
     this.email = email;
     this.password = password;
-    this.role = role;
-    this.profile = profile;
+    this.name = name;
+    // this.role = role;
+    this.roles = roles;
+    // this.profile = profile;
+    this.isActive = isActive;
     this.isBlocked = isBlocked;
     this.isEmailVerified = isEmailVerified;
-    this.preferences = preferences;
+    // this.preferences = preferences;
     this.lastLogin = lastLogin;
     this.refreshToken = refreshToken;
     this.createdAt = createdAt;
@@ -94,11 +109,13 @@ export class User {
       new Types.ObjectId().toString(),
       dto.email,
       dto.password,
-      dto.role || UserRole.STUDENT,
-      dto.profile,
+      dto.name,
+      dto.avatar ?? '',
+      dto.roles ?? [UserRole.STUDENT],
+      // dto.profile,
+      true,
       false,
       false,
-      dto.preferences || [],
       undefined,
       undefined,
       now,
@@ -111,11 +128,14 @@ export class User {
     _id: string;
     email: string;
     password: string;
-    role: UserRole;
-    profile: UserProfile;
+    name: string;
+    avatar: string;
+    roles: UserRole[];
+    // profile: UserProfile;
+    isActive: boolean;
     isBlocked: boolean;
     isEmailVerified: boolean;
-    preferences: string[];
+    // preferences: string[];
     lastLogin?: Date;
     refreshToken?: string;
     createdAt: Date;
@@ -125,11 +145,14 @@ export class User {
       props._id,
       props.email,
       props.password,
-      props.role,
-      props.profile,
+      props.name,
+      props.avatar,
+      props.roles,
+      // props.profile,
+      props.isActive,
       props.isBlocked,
       props.isEmailVerified,
-      props.preferences,
+      // props.preferences,
       props.lastLogin,
       props.refreshToken,
       props.createdAt,
@@ -138,13 +161,23 @@ export class User {
   }
 
   //Domain Behaviors
-  updateProfile(profile: Partial<UserProfile>): void {
-    this.profile = { ...this.profile, ...profile };
+  // updateProfile(profile: Partial<UserProfile>): void {
+  //   this.profile = { ...this.profile, ...profile };
+  //   this.touch();
+  // }
+
+  // updatePreferences(preferences: string[]): void {
+  //   this.preferences = preferences;
+  //   this.touch();
+  // }
+
+  activate(): void {
+    this.isActive = true;
     this.touch();
   }
 
-  updatePreferences(preferences: string[]): void {
-    this.preferences = preferences;
+  deactivate(): void {
+    this.isActive = false;
     this.touch();
   }
 
@@ -165,6 +198,18 @@ export class User {
 
   updateLastLogin(): void {
     this.lastLogin = new Date();
+    this.touch();
+  }
+
+  addRole(role: UserRole): void {
+    if (!this.roles.includes(role)) {
+      this.roles.push(role);
+    }
+    this.touch();
+  }
+
+  removeRole(role: UserRole): void {
+    this.roles = this.roles.filter((r) => r !== role);
     this.touch();
   }
 

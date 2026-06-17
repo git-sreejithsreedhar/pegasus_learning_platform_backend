@@ -4,19 +4,17 @@ import { User } from '../../domain/entities/users.entity';
 import { PASSWORD_SERVICE, USER_REPOSITORY } from '../../domain/tokens/tokens';
 import { Inject } from '@nestjs/common';
 import type { IPasswordService } from 'src/core/common/security/password-hasher.interface';
-
+import * as verificationTriggerInterface from '../interfaces/verification-trigger.interface';
 export class CreateUserUseCase {
-  // constructor(
-  //   private readonly userRepository: IUserRepository,
-  //   private readonly passwordService: IPasswordService,
-  // ) {}
-
   constructor(
     @Inject(USER_REPOSITORY)
     private readonly userRepository: IUserRepository,
 
     @Inject(PASSWORD_SERVICE)
     private readonly passwordService: IPasswordService,
+
+    @Inject(verificationTriggerInterface.VERIFICATION_TRIGGER)
+    private readonly verificationTrigger: verificationTriggerInterface.IVerificationTrigger,
   ) {}
 
   async execute(createUserDto: CreateUserDto): Promise<User> {
@@ -37,6 +35,12 @@ export class CreateUserUseCase {
       password: hashedPassword,
     });
 
-    return await this.userRepository.save(user);
+    // return await this.userRepository.save(user);
+
+    const savedUser = await this.userRepository.save(user);
+
+    await this.verificationTrigger.execute(savedUser);
+
+    return savedUser;
   }
 }
